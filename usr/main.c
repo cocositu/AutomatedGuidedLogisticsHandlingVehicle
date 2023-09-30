@@ -126,6 +126,7 @@ static void task_QRcodeIdentify(void* pvParameters){
 
 #ifdef BOTTOM_LEVEL
 
+int flag = 0;
 Arr_pLedStruct LED = NULL;
 pLedStruct LED3 =NULL;
 static TaskHandle_t task_Led_handle = NULL;
@@ -142,6 +143,7 @@ int main(void){
 	LED[1]->SetEnLevel = SET_EN_LOW_LEVEL;
 	LED[2]->SetEnLevel = SET_EN_LOW_LEVEL;
 
+	LED[0]->off(LED[0]);
 	// MOTOR_LF_TIM_Init();
 	// MOTOR_LR_TIM_Init();
 	// MOTOR_RF_TIM_Init();
@@ -163,83 +165,92 @@ int main(void){
 	// TIM_CtrlPWMOutputs(TIM1, ENABLE);
 	// TIM_CtrlPWMOutputs(TIM8, ENABLE);
 	// for(int i = 0; i < STEPS_LOOP_MAXNUM; ++i)
-	// 	StepMotorLFBuffer[i] = 10 * i;
+	// 	StepMotorLFBuffer[i] = 10 * i + 1000;
 	// StepMotorLFBuffer[STEPS_LOOP_MAXNUM] = 0xFFFF;
-	//DMA_Enable();
+	// DMA_Enable();
 	// TIM_ARRPreloadConfig(TIM2,ENABLE);//ARPE使能
 	//TIM_Cmd(MOTOR_LF_TIM, ENABLE); 
 	// TIM_Cmd(TIM1, ENABLE); 
 	// TIM_Cmd(TIM3, ENABLE); 
 	// TIM_Cmd(TIM8, ENABLE); 
 	// TIM_CtrlPWMOutputs(TIM2, ENABLE);
-	for(int j =0;j<4;j++){
-		for(int i = 0; i < 8; i++){
-			MotorUartBuffer[j][i] = 'a' + i;
-		}
-	}
-	while (1)
-	{
-		LED[0]->reverse(LED[0]);
+	// for(int j =0;j<4;j++){
+	// 	for(int i = 0; i < 8; i++){
+	// 		MotorUartBuffer[j][i] = 'a' + i;
+	// 	}
+	// }
+	// while (1)
+	// {
+	// 	LED[0]->reverse(LED[0]);
 		
-    	//while (DMA_GetFlagStatus(MOTOR_LF_UART_DMA_STREAM, DMA_FLAG_TCIF6) == RESET);
-    	// 清除DMA传输完成标志
-   		DMA_ClearFlag(MOTOR_LF_UART_DMA_STREAM, DMA_FLAG_TCIF6);
-		DMA_Cmd(MOTOR_LF_UART_DMA_STREAM, ENABLE);
-		DMA_ClearFlag(MOTOR_LR_UART_DMA_STREAM, DMA_FLAG_TCIF3);
-		DMA_Cmd(MOTOR_LR_UART_DMA_STREAM, ENABLE);
-		DMA_ClearFlag(MOTOR_RF_UART_DMA_STREAM, DMA_FLAG_TCIF7);
-		DMA_Cmd(MOTOR_RF_UART_DMA_STREAM, ENABLE);
-		DMA_ClearFlag(MOTOR_RR_UART_DMA_STREAM, DMA_FLAG_TCIF7);
-		DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
-		delay_xms(1000);
-	}
-
-
-		/* 创建app_task1任务 */
-	// xTaskCreate((TaskFunction_t )task_Led,  		/* 任务入口函数 */
-	// 		  (const char*    )"task_Led",			/* 任务名字 */
-	// 		  (uint16_t       )512,  				/* 任务栈大小 */
-	// 		  (void*          )NULL,				/* 任务入口函数参数 */
-	// 		  (UBaseType_t    )4, 					/* 任务的优先级 */
-	// 		  (TaskHandle_t*  )&task_Led_handle);	/* 任务控制块指针 */ 
-	// 	/* 创建task_QrcodeIdentify任务 */
+    // 	//while (DMA_GetFlagStatus(MOTOR_LF_UART_DMA_STREAM, DMA_FLAG_TCIF6) == RESET);
+    // 	// 清除DMA传输完成标志
+   	// 	DMA_ClearFlag(MOTOR_LF_UART_DMA_STREAM, DMA_FLAG_TCIF6);
+	// 	DMA_Cmd(MOTOR_LF_UART_DMA_STREAM, ENABLE);
+	// 	DMA_ClearFlag(MOTOR_LR_UART_DMA_STREAM, DMA_FLAG_TCIF3);
+	// 	DMA_Cmd(MOTOR_LR_UART_DMA_STREAM, ENABLE);
+	// 	DMA_ClearFlag(MOTOR_RF_UART_DMA_STREAM, DMA_FLAG_TCIF7);
+	// 	DMA_Cmd(MOTOR_RF_UART_DMA_STREAM, ENABLE);
+	// 	DMA_ClearFlag(MOTOR_RR_UART_DMA_STREAM, DMA_FLAG_TCIF7);
+	// 	DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
+	// 	delay_xms(1000);
+	// }
+	//MotorUartCtrl(MOTOR_LF_ADDR, 0, 100, 50, 800 * 5, REL_FLAG, 0);
+	//MotorUartCtrl(MOTOR_LR_ADDR, 0, 100, 50, 800 * 5, REL_FLAG, 0);
+	//MotorUartCtrl(MOTOR_RF_ADDR, 1, 100, 50, 800 * 5, REL_FLAG, 0);
+	MotorUartCtrl(MOTOR_RR_ADDR, 1, 100, 50, 800 * 5, REL_FLAG, 0);
+	/* 创建app_task1任务 */
+	xTaskCreate((TaskFunction_t )task_Led,  		/* 任务入口函数 */
+			  (const char*    )"task_Led",			/* 任务名字 */
+			  (uint16_t       )512,  				/* 任务栈大小 */
+			  (void*          )NULL,				/* 任务入口函数参数 */
+			  (UBaseType_t    )4, 					/* 任务的优先级 */
+			  (TaskHandle_t*  )&task_Led_handle);	/* 任务控制块指针 */ 
+		/* 创建task_QrcodeIdentify任务 */
 	
-	// /* 开启任务调度 */
-	// vTaskStartScheduler(); 
+	/* 开启任务调度 */
+	vTaskStartScheduler(); 
 }
 
-// static void task_Led(void* pvParameters){	
-// 	while(1){
-// 		LED[0]->reverse(LED[0]);
-// 		LED[1]->reverse(LED[1]);
-// 		LED[2]->reverse(LED[2]);
-// 		// #ifdef UART1_PRINTF
-// 		// 	printf("Hello World!\r\n");
-// 		// #endif
-// 		// #ifdef UART6_PRINTF
-// 		// 	printf("Goodbye World!\r\n");
-// 		// #endif
-		
-// 		DMA_Cmd(MOTOR_LF_UART_DMA_STREAM, DISABLE);
-// 		while (DMA_GetCmdStatus(MOTOR_LF_UART_DMA_STREAM) != DISABLE);	
-// 		//MOTOR_LF_UART_DMA_STREAM->NDTR = STEPS_UART_BUFFER_LENTH;
-// 		//DMA_SetCurrDataCounter(MOTOR_LF_UART_DMA_STREAM, STEPS_UART_BUFFER_LENTH);
-// 		DMA_Cmd(MOTOR_LF_UART_DMA_STREAM, ENABLE);
+static void task_Led(void* pvParameters){	
+	while(1){
+		//LED[0]->reverse(LED[0]);
+		LED[1]->reverse(LED[1]);
+		LED[2]->reverse(LED[2]);
+		// #ifdef UART1_PRINTF
+		// 	printf("Hello World!\r\n");
+		// #endif
+		// #ifdef UART6_PRINTF
+		// 	printf("Goodbye World!\r\n");
+		// #endif
+		// if(flag >= 1){
+		// 	LED[0]->on(LED[0]);
+		// }
+		vTaskDelay(1000);
+	}
+}   
 
-// 		vTaskDelay(1000);
-// 	}
-// }   
+void DMA_Enable(void){
+	MOTOR_LF_DMA_STREAM->NDTR = STEPS_LOOP_MAXNUM + 1;
+	DMA_ClearFlag(MOTOR_LF_DMA_STREAM, DMA_FLAG_TCIF5);
+ 	//DMA_SetCurrDataCounter(MOTOR_LF_DMA_STREAM, STEPS_LOOP_MAXNUM+1);
+	DMA_Cmd(MOTOR_LF_DMA_STREAM, ENABLE);
+	TIM_Cmd(MOTOR_LF_TIM, ENABLE); 
+}	 
 
-// void DMA_Enable(void){
-
-// 	TIM_DMACmd(MOTOR_LF_TIM, MOTOR_LF_TIM_DMA_CC, DISABLE);
-//  	DMA_SetCurrDataCounter(MOTOR_LF_DMA_STREAM, STEPS_LOOP_MAXNUM+1);
-// 	TIM_GenerateEvent(TIM2, TIM_EventSource_Update);
-//   	TIM_DMACmd(MOTOR_LF_TIM, MOTOR_LF_TIM_DMA_CC, ENABLE);
-// 	//TIM_ARRPreloadConfig(TIM2,ENABLE);//ARPE使能
-// 	TIM_Cmd(TIM2, ENABLE); 
-// 	TIM2->EGR |= 0x01;	
-// }	  
+//TIM_ARRPreloadConfig(TIM2,ENABLE);//ARPE使能
+// TIM2->EGR |= 0x01;
 
 #endif //BOTTOM_LEVEL
 
+
+// HIGHT
+void DMA1_Stream5_IRQHandler(void){
+  if (DMA_GetITStatus(DMA1_Stream5, DMA_IT_TCIF5)){
+    flag++;
+    DMA_Cmd(DMA1_Stream5, DISABLE);
+    TIM_CCxCmd(TIM2, TIM_Channel_1, TIM_CCx_Disable);
+    DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_TCIF5);
+    TIM_GenerateEvent(TIM2, TIM_EventSource_Update);
+  }
+}

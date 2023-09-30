@@ -62,15 +62,15 @@ typedef uint8_t bool;
 
 #ifdef BOTTOM_LEVEL
 
-#define MOTOR_LF_TIM            TIM2
-#define MOTOR_LF_AF_TIM         GPIO_AF_TIM2
-#define MOTOR_LF_TIM_CC_ADRESS  TIM2->ARR
-#define MOTOR_LF_GPIO           GPIOA
-#define MOTOR_LF_GPIO_PIN       GPIO_Pin_5
-#define MOTOR_LF_GPIO_PINSOURCE GPIO_PinSource5
-#define MOTOR_LF_TIM_CLK        RCC_APB1Periph_TIM2
+#define MOTOR_LF_TIM                     TIM2
+#define MOTOR_LF_AF_TIM                  GPIO_AF_TIM2
+#define MOTOR_LF_TIM_CC_ADRESS           TIM2->ARR
+#define MOTOR_LF_GPIO                    GPIOA
+#define MOTOR_LF_GPIO_PIN                GPIO_Pin_5
+#define MOTOR_LF_GPIO_PINSOURCE          GPIO_PinSource5
+#define MOTOR_LF_TIM_CLK                 RCC_APB1Periph_TIM2
 #define MOTOR_LF_FUN_TIM_CLK(NewState)   RCC_APB1PeriphClockCmd(MOTOR_LF_TIM_CLK, NewState)
-#define MOTOR_LF_GPIO_CLK       RCC_AHB1Periph_GPIOA
+#define MOTOR_LF_GPIO_CLK                RCC_AHB1Periph_GPIOA
 #define MOTOR_LF_FUN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_LF_GPIO_CLK, NewState)
 #define MOTOR_LF_FUN_TIM_OC_INIT         TIM_OC1Init
 #define MOTOR_LF_FUN_TIM_OC_PRE          TIM_OC1PreloadConfig
