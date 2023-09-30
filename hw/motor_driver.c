@@ -325,7 +325,7 @@ void  MOTOR_LF_UART_Init(uint32_t bound){
 }
 
 
-void  MOTOR_LR_UART_Init(uint32_t bound){
+void MOTOR_LR_UART_Init(uint32_t bound){
 
 	MOTOR_LR_UART_RX_FUN_GPIO_CLK(ENABLE);
 	MOTOR_LR_UART_TX_FUN_GPIO_CLK(ENABLE);
@@ -478,11 +478,6 @@ void  MOTOR_RR_UART_Init(uint32_t bound){
 }
 
 
-/**
- * @brief  
- * 
- * @var absolutely relative
- */
 void sendMotorUart_Once(MOTOR_UART_ADDR_ENUM Motor_addr, int Msg_Lenth){
     switch (Motor_addr){
     case MOTOR_LF_ADDR:
@@ -505,30 +500,42 @@ void sendMotorUart_Once(MOTOR_UART_ADDR_ENUM Motor_addr, int Msg_Lenth){
         DMA_ClearFlag(MOTOR_RR_UART_DMA_STREAM, DMA_FLAG_TCIF7);
 		DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
         break;
+    case MOTOR_ALL_ADDR:
+        MOTOR_LF_UART_DMA_STREAM->NDTR = Msg_Lenth;
+        MOTOR_LR_UART_DMA_STREAM->NDTR = Msg_Lenth;
+        MOTOR_RF_UART_DMA_STREAM->NDTR = Msg_Lenth;
+        MOTOR_RR_UART_DMA_STREAM->NDTR = Msg_Lenth;
+        DMA_ClearFlag(MOTOR_LF_UART_DMA_STREAM, DMA_FLAG_TCIF6);
+        DMA_ClearFlag(MOTOR_LR_UART_DMA_STREAM, DMA_FLAG_TCIF3);
+        DMA_ClearFlag(MOTOR_RF_UART_DMA_STREAM, DMA_FLAG_TCIF7);
+        DMA_ClearFlag(MOTOR_RR_UART_DMA_STREAM, DMA_FLAG_TCIF7);
+		DMA_Cmd(MOTOR_LF_UART_DMA_STREAM, ENABLE);  
+		DMA_Cmd(MOTOR_LR_UART_DMA_STREAM, ENABLE);
+		DMA_Cmd(MOTOR_RF_UART_DMA_STREAM, ENABLE);
+		DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
     }
 }
 
-void MotorUartCtrl(                                                                    \
-    MOTOR_UART_ADDR_ENUM Motor_addr, uint8_t Motor_dir, uint16_t Motor_vel,         \
-    uint8_t Motor_acc, uint32_t Motor_clk, ABS_OR_REL_FLAG Abs_or_Rel_Flag, uint8_t isClog   \
+void MotorUartCtrl(                                                                         \
+    MOTOR_UART_ADDR_ENUM Motor_addr, uint8_t Motor_dir, uint16_t Motor_vel,                 \
+    uint8_t Motor_acc, uint32_t Motor_clk, ABS_OR_REL_FLAG Abs_or_Rel_Flag, bool isSend     \
 ){
-
-    MotorUartBuffer[Motor_addr][0] = Motor_addr;
-    MotorUartBuffer[Motor_addr][1] = 0xFD;
-    MotorUartBuffer[Motor_addr][2] = Motor_dir;
-    MotorUartBuffer[Motor_addr][3] = (uint8_t)(Motor_vel>>8);
-    MotorUartBuffer[Motor_addr][4] = (uint8_t)(Motor_vel>>0);
-    MotorUartBuffer[Motor_addr][5] = Motor_acc;
-    MotorUartBuffer[Motor_addr][6] = (uint8_t)(Motor_clk>>24);
-    MotorUartBuffer[Motor_addr][7] = (uint8_t)(Motor_clk>>16);
-    MotorUartBuffer[Motor_addr][8] = (uint8_t)(Motor_clk>>8);
-    MotorUartBuffer[Motor_addr][9] = (uint8_t)(Motor_clk>>0);
+    
+    MotorUartBuffer[Motor_addr][0]  = Motor_addr;
+    MotorUartBuffer[Motor_addr][1]  = 0xFD;
+    MotorUartBuffer[Motor_addr][2]  = Motor_dir;
+    MotorUartBuffer[Motor_addr][3]  = (uint8_t)(Motor_vel>>8);
+    MotorUartBuffer[Motor_addr][4]  = (uint8_t)(Motor_vel>>0);
+    MotorUartBuffer[Motor_addr][5]  = Motor_acc;
+    MotorUartBuffer[Motor_addr][6]  = (uint8_t)(Motor_clk>>24);
+    MotorUartBuffer[Motor_addr][7]  = (uint8_t)(Motor_clk>>16);
+    MotorUartBuffer[Motor_addr][8]  = (uint8_t)(Motor_clk>>8);
+    MotorUartBuffer[Motor_addr][9]  = (uint8_t)(Motor_clk>>0);
     MotorUartBuffer[Motor_addr][10] = (uint8_t)(Abs_or_Rel_Flag);
     MotorUartBuffer[Motor_addr][11] = (uint8_t)0x00;
     MotorUartBuffer[Motor_addr][12] = (uint8_t)0x6B;
-    sendMotorUart_Once(Motor_addr, 13);
-    if(isClog == True){
-        delay_ms((uint32_t)(Motor_clk / Motor_vel) + 200);
+    if(isSend == True){
+        sendMotorUart_Once(Motor_addr, 13);
     }
 }
 

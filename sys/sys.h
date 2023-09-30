@@ -16,4 +16,8 @@ void delay_ms(uint16_t nms);
 //nms:要延时的ms 数
 void delay_xms(uint32_t nms);
 
+int _abs(int num);
+int _sign(int num);
+int _sign_f(float num);
+
 #endif //_SYS_H_

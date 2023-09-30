@@ -77,4 +77,21 @@ void delay_xms(uint32_t nms)
 		delay_us(1000);
 }
 
+int _abs(int num){
+    if (num < 0) return -num;
+    else return num;
+}
+
+
+int _sign(int num){
+    if (num  < 0) return -1;
+    else return 1;
+}
+
+int _sign_f(float num){
+    if (num  < 0) return -1;
+    else return 1;
+}
+
+
 #endif

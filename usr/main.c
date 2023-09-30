@@ -156,7 +156,7 @@ int main(void){
 	MOTOR_LR_UART_Init(115200);
 	MOTOR_RF_UART_Init(115200);
 	MOTOR_RR_UART_Init(115200);
-	delay_xms(3000);
+	delay_xms(5000);
 	//TIM_SetCompare1(MOTOR_LF_TIM, 30);
 	// TIM_SetCompare1(TIM1, 30);
 	// TIM_SetCompare1(TIM3, 30);
@@ -195,10 +195,18 @@ int main(void){
 	// 	DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
 	// 	delay_xms(1000);
 	// }
-	//MotorUartCtrl(MOTOR_LF_ADDR, 0, 100, 50, 800 * 5, REL_FLAG, 0);
-	//MotorUartCtrl(MOTOR_LR_ADDR, 0, 100, 50, 800 * 5, REL_FLAG, 0);
-	//MotorUartCtrl(MOTOR_RF_ADDR, 1, 100, 50, 800 * 5, REL_FLAG, 0);
-	MotorUartCtrl(MOTOR_RR_ADDR, 1, 100, 50, 800 * 5, REL_FLAG, 0);
+	while (1)
+	{
+		MotorUartCtrl(MOTOR_LF_ADDR, 0, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		MotorUartCtrl(MOTOR_LR_ADDR, 0, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		MotorUartCtrl(MOTOR_RF_ADDR, 1, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		MotorUartCtrl(MOTOR_RR_ADDR, 1, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		//8sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+		//delay_xms((uint32_t)(800.0 / 80 + 2.0 * 80.0 / 50) * 1000);
+		delay_xms(5000);
+	}
+	
+	
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t )task_Led,  		/* 任务入口函数 */
 			  (const char*    )"task_Led",			/* 任务名字 */
