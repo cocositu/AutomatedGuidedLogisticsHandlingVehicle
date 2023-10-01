@@ -138,22 +138,32 @@ typedef uint8_t bool;
 #define MOTOR_RR_DMA_CLK                 RCC_AHB1Periph_DMA2                             
 #define MOTOR_RR_FUN_DMA_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_RR_DMA_CLK , NewState)
 
-#define IMU_UART                      UART4
-#define IMU_GPIO_AF_UART              GPIO_AF_UART4
-#define IMU_UART_IRQn                 UART4_IRQn
-#define IMU_UART_CLK                  RCC_APB1Periph_UART4
-#define IMU_RX_GPIO                   GPIOA
-#define IMU_TX_GPIO                   GPIOA
-#define IMU_RX_GPIO_PIN               GPIO_Pin_1
-#define IMU_TX_GPIO_PIN               GPIO_Pin_0
-#define IMU_RX_GPIO_PINSOURCE         GPIO_PinSource1
-#define IMU_TX_GPIO_PINSOURCE         GPIO_PinSource0
-#define IMU_RX_GPIO_CLK               RCC_AHB1Periph_GPIOA
-#define IMU_TX_GPIO_CLK               RCC_AHB1Periph_GPIOA
-#define IMU_FUN_UART_CLK(NewState)    RCC_APB1PeriphClockCmd(IMU_UART_CLK, NewState)
-#define IMU_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(IMU_RX_GPIO_CLK, NewState)
-#define IMU_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(IMU_TX_GPIO_CLK, NewState)
-#define IMU_IRQHandler(x)             UART4_IRQHandler(x)
+#define IMU_UART                            UART4
+#define IMU_GPIO_AF_UART                    GPIO_AF_UART4
+#define IMU_UART_IRQn                       UART4_IRQn
+#define IMU_UART_IRQHandler(x)              UART4_IRQHandler(x)
+#define IMU_UART_CLK                        RCC_APB1Periph_UART4
+#define IMU_RX_GPIO                         GPIOA
+#define IMU_TX_GPIO                         GPIOA
+#define IMU_RX_GPIO_PIN                     GPIO_Pin_1
+#define IMU_TX_GPIO_PIN                     GPIO_Pin_0
+#define IMU_RX_GPIO_PINSOURCE               GPIO_PinSource1
+#define IMU_TX_GPIO_PINSOURCE               GPIO_PinSource0
+#define IMU_RX_GPIO_CLK                     RCC_AHB1Periph_GPIOA
+#define IMU_TX_GPIO_CLK                     RCC_AHB1Periph_GPIOA
+#define IMU_FUN_UART_CLK(NewState)          RCC_APB1PeriphClockCmd(IMU_UART_CLK, NewState)
+#define IMU_RX_FUN_GPIO_CLK(NewState)       RCC_AHB1PeriphClockCmd(IMU_RX_GPIO_CLK, NewState)
+#define IMU_TX_FUN_GPIO_CLK(NewState)       RCC_AHB1PeriphClockCmd(IMU_TX_GPIO_CLK, NewState)
+#define IMU_IRQHandler(x)                   UART4_IRQHandler(x)
+#define IMU_UART_DMA                        DMA1
+#define IMU_UART_DMA_STREAM                 DMA1_Stream2
+#define IMU_UART_DMA_IRQn                   DMA1_Stream2_IRQn
+#define IMU_UART_DMA_IRQHandler(x)          DMA1_Stream2_IRQHandler(x)
+#define IMU_UART_DMA_FLAG_TCIF              DMA_FLAG_TCIF2
+#define IMU_UART_DMA_CHANNEL                DMA_Channel_4
+#define IMU_UART_SEND_ADRESS                UART4->DR
+#define IMU_UART_DMA_CLK                    RCC_AHB1Periph_DMA1                             
+#define IMU_UART_FUN_DMA_CLK(NewState)      RCC_AHB1PeriphClockCmd(IMU_UART_DMA_CLK , NewState)
 
 #define MOTOR_LF_UART                           USART2
 #define MOTOR_LF_UART_GPIO_AF_UART              GPIO_AF_USART2

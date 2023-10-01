@@ -23,7 +23,7 @@
 /*底盘代码*/
 #ifdef  BOTTOM_LEVEL
 #include"motor_driver.h"
-#include"jy901s.h"
+#include"hwt101.h"
 #endif //BOTTOM_LEVEL
 
 /*两层通用文件*/
@@ -135,7 +135,7 @@ void DMA_Enable(void);
 int main(void){
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	delay_init();
-	//IMU_uart_init(115200);
+	IMU_uart_init(9600);
 	//uart1_init(115200);
 	//uart6_init(115200);
 	LED = Create_Arr_LedStruct(3);
@@ -195,15 +195,22 @@ int main(void){
 	// 	DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
 	// 	delay_xms(1000);
 	// }
-	while (1)
-	{
-		MotorUartCtrl(MOTOR_LF_ADDR, 0, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
-		MotorUartCtrl(MOTOR_LR_ADDR, 0, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
-		MotorUartCtrl(MOTOR_RF_ADDR, 1, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
-		MotorUartCtrl(MOTOR_RR_ADDR, 1, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+	while (1){
+		if(HWT101_Struct.GetITSta == 1){
+			LED[0]->reverse(LED[0]);
+			HWT101_Struct.GetITSta = 0;
+			memset(HWT101_Struct.MSG_Rx_Buff,0,sizeof(HWT101_Struct.MSG_Rx_Buff));
+		}else if(HWT101_Struct.GetITSta == -1){
+			HWT101_Struct.GetITSta = 0;
+			LED[2]->reverse(LED[2]);
+		}
+		// MotorUartCtrl(MOTOR_LF_ADDR, 0, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		// MotorUartCtrl(MOTOR_LR_ADDR, 0, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		// MotorUartCtrl(MOTOR_RF_ADDR, 1, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
+		// MotorUartCtrl(MOTOR_RR_ADDR, 1, 80, 50, (uint32_t)(800 * 4), REL_FLAG, False);
 		//8sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
 		//delay_xms((uint32_t)(800.0 / 80 + 2.0 * 80.0 / 50) * 1000);
-		delay_xms(5000);
+		delay_xms(300);
 	}
 	
 	
