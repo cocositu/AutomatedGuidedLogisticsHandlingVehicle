@@ -17,7 +17,7 @@ void SysTick_Handler(void){
 //当使用OS的时候,此函数会初始化OS的时钟节拍
 //SYSTICK的时钟固定为HCLK时钟的1/8
 //SYSCLK:系统时钟
-void delay_init(){
+void delay_init(void){
 #if SYSTEM_SUPPORT_OS  							//如果需要支持OS.
 	uint32_t reload;
 #endif

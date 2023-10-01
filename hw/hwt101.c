@@ -103,6 +103,27 @@ SUM		校验和			SUM=0x55+0x53+YawH+YawL+VL+VH
 	示例：发送：FF AA  48 01 00（自动获取零偏）
 
 */
+
+void IMU_UART_SendData(char *DataArr ,uint16_t DataLenth){
+	USART_ClearFlag(IMU_UART,USART_FLAG_TC);	
+	for(int i = 0; i < DataLenth; ++i){
+		USART_SendData(IMU_UART, DataArr[i]);									
+		while(USART_GetFlagStatus(IMU_UART, USART_FLAG_TC) == 0);					
+		USART_ClearFlag(IMU_UART, USART_FLAG_TC);									
+	}
+}
+
+void IMU_UART_YawZeroOut(void){
+	//FF AA 76 00 00
+	HWT101_Struct.MSG_Tx_Buff[0] = 0xFF;
+	HWT101_Struct.MSG_Tx_Buff[1] = 0xAA;
+	HWT101_Struct.MSG_Tx_Buff[2] = 0x76;
+	HWT101_Struct.MSG_Tx_Buff[3] = 0x00;
+	HWT101_Struct.MSG_Tx_Buff[4] = 0x00;
+	IMU_UART_SendData(HWT101_Struct.MSG_Tx_Buff, IMU_MSG_TX_LEN);
+	memset(HWT101_Struct.MSG_Tx_Buff,0,sizeof(HWT101_Struct.MSG_Tx_Buff));
+}
+
 void IMU_UART_IRQHandler(void){
 	if(USART_GetITStatus(IMU_UART,USART_IT_IDLE)!=RESET){		
 		DMA_Cmd(IMU_UART_DMA_STREAM, DISABLE); /* 关闭DMA ，防止干扰 */ 
@@ -132,6 +153,7 @@ void IMU_UART_IRQHandler(void){
 		//    temp = IMU_UART->DR; //清USART_IT_IDLE标志
 	}
 }
+
 
 
 #endif //BOTTOM

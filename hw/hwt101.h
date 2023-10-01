@@ -22,6 +22,6 @@ typedef struct _IMU_struct{
 
 extern IMU_MSG_Sturct HWT101_Struct;
 void IMU_uart_init(uint32_t bound);
-
+void IMU_UART_YawZeroOut(void);
 
 #endif //_HWT101_H_

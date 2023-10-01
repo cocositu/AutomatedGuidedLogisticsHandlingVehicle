@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER,ARM_MATH_LOOPUNROLL,ARM_MATH_CM4,STM32F4xx</Define>
               <Undefine></Undefine>
-              <IncludePath>.\usr;.\core;.\lib\inc;.\CMSIS\DSP\Include;.\CMSIS\FreeRTOS\include;.\CMSIS\FreeRTOS\portable\RVDS\ARM_CM4F;.\hw</IncludePath>
+              <IncludePath>.\usr;.\core;.\lib\inc;.\CMSIS\DSP\Include;.\CMSIS\FreeRTOS\include;.\CMSIS\FreeRTOS\portable\RVDS\ARM_CM4F;.\hw;.\hw\LCD;.\sys</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -779,6 +779,131 @@
               <FileName>led.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\hw\led.h</FilePath>
+            </File>
+            <File>
+              <FileName>beep.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\beep.c</FilePath>
+            </File>
+            <File>
+              <FileName>beep.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\beep.h</FilePath>
+            </File>
+            <File>
+              <FileName>comm_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\comm_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\comm_uart.h</FilePath>
+            </File>
+            <File>
+              <FileName>hwt101.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\hwt101.c</FilePath>
+            </File>
+            <File>
+              <FileName>hwt101.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\hwt101.h</FilePath>
+            </File>
+            <File>
+              <FileName>KinematicModel.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\KinematicModel.c</FilePath>
+            </File>
+            <File>
+              <FileName>KinematicModel.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\KinematicModel.h</FilePath>
+            </File>
+            <File>
+              <FileName>motor_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\motor_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_driver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\motor_driver.h</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>QRcode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\QRcode.c</FilePath>
+            </File>
+            <File>
+              <FileName>QRcode.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\QRcode.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\uart.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>lcd</GroupName>
+          <Files>
+            <File>
+              <FileName>lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\LCD\lcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\LCD\lcd.h</FilePath>
+            </File>
+            <File>
+              <FileName>lcd_init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\LCD\lcd_init.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd_init.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\LCD\lcd_init.h</FilePath>
+            </File>
+            <File>
+              <FileName>lcdfont.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\LCD\lcdfont.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>sys</GroupName>
+          <Files>
+            <File>
+              <FileName>sys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\sys\sys.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\sys\sys.h</FilePath>
             </File>
           </Files>
         </Group>

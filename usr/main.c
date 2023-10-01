@@ -195,6 +195,7 @@ int main(void){
 	// 	DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
 	// 	delay_xms(1000);
 	// }
+	IMU_UART_YawZeroOut();
 	while (1){
 		if(HWT101_Struct.GetITSta == 1){
 			LED[0]->reverse(LED[0]);
