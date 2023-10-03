@@ -4,8 +4,8 @@ double vel_weel[4];
 double pos_weel[4];
 
 #define PI                   (3.14159f)
-#define a_PARAMETER          (10.75f  / 18.84954f)               
-#define b_PARAMETER          (6.575f  / 18.84954f)      
+#define a_PARAMETER          (22.2f  / (6*PI))               
+#define b_PARAMETER          (26.0f  / (6*PI))      
 /**************************************************************************
 函数功能：小车运动数学模型
 入口参数：X Y Z 三轴速度或者位置

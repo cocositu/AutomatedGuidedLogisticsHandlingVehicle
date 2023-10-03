@@ -29,7 +29,7 @@ void Comm_uart_init(uint32_t bound){
 	USART_InitStructure.USART_Mode       = USART_Mode_Rx | USART_Mode_Tx;	
     USART_Init(COMM_UART, &USART_InitStructure); 
     USART_Cmd(COMM_UART, ENABLE);
-
+	
     USART_ITConfig(COMM_UART, USART_IT_RXNE, ENABLE);
 	NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel                   = COMM_UART_IRQn;

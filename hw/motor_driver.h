@@ -5,7 +5,7 @@
 
 #ifdef STEPPER_MOTOR_DRIVER
 
-#define STEPS_LOOP_MAXNUM           200
+#define STEPS_LOOP_MAXNUM           400
 #define STEPS_UART_BUFFER_LENTH     13   
 
 typedef enum{
@@ -25,6 +25,10 @@ typedef enum{
     MOTOR_UART_SEND_EN    = 0x01,
 } MOTOR_UART_SEND_ENUM;
 
+typedef enum{
+    MOTOR_REVERSE   = 0x00,
+    MOTOR_FORWARD   = 0x01,
+} MOTOR_DIR_ENUM;
 
 typedef uint32_t StepBufferType;
 typedef uint8_t  MotorUartBufferType;
@@ -53,15 +57,15 @@ void  MOTOR_RR_UART_Init(uint32_t bound);
 
 void sendMotorUart_Once(MOTOR_UART_ADDR_ENUM Motor_addr, int Msg_Lenth);
 void MotorUartCtrl(                                                                       \
-    MOTOR_UART_ADDR_ENUM Motor_addr, uint8_t Motor_dir, uint16_t Motor_vel,               \
+    MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, uint16_t Motor_vel,   \
     uint8_t Motor_acc, uint32_t Motor_clk, ABS_OR_REL_FLAG Abs_or_Rel_Flag, bool isSend   \
 );
+
+void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, 
+    uint32_t Motor_vel,uint32_t Motor_acc, uint32_t Motor_clk, bool isGearShift, bool isEn);
+void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr);
 #endif //STEPPER_MOTOR_DRIVER
 #endif //_MOTOR_DRIVER_H_
 
 
-// void MOTOR_LF_DMA_Init(void);
-// void MOTOR_LR_DMA_Init(void);
-// void MOTOR_RF_DMA_Init(void);
-// void MOTOR_RR_DMA_Init(void);
 		

@@ -58,76 +58,137 @@ typedef uint8_t bool;
 #define MOTOR_RR_UART_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MOTOR_RR_UART_TX_GPIO_CLK, NewState)
 #define MOTOR_RR_UART_IRQHandler(x)             USART1_IRQHandler(x)
 
+#define COMM_UART                      USART6
+#define COMM_GPIO_AF_UART              GPIO_AF_USART6
+#define COMM_UART_IRQn                 USART6_IRQn
+#define COMM_UART_CLK                  RCC_APB2Periph_USART6
+#define COMM_RX_GPIO                   GPIOC
+#define COMM_TX_GPIO                   GPIOC
+#define COMM_RX_GPIO_PIN               GPIO_Pin_7
+#define COMM_TX_GPIO_PIN               GPIO_Pin_6
+#define COMM_RX_GPIO_PINSOURCE         GPIO_PinSource7
+#define COMM_TX_GPIO_PINSOURCE         GPIO_PinSource6
+#define COMM_RX_GPIO_CLK               RCC_AHB1Periph_GPIOC
+#define COMM_TX_GPIO_CLK               RCC_AHB1Periph_GPIOC
+#define COMM_FUN_UART_CLK(NewState)    RCC_APB2PeriphClockCmd(COMM_UART_CLK, NewState)
+#define COMM_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(COMM_RX_GPIO_CLK, NewState)
+#define COMM_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(COMM_TX_GPIO_CLK, NewState)
+#define COMM_IRQHandler(x)             USART6_IRQHandler(x)
+
 #endif //TOP_LEVEL
 
 #ifdef BOTTOM_LEVEL
 
+#define MOTOR_LF_EN_GPIO                     GPIOA
+#define MOTOR_LF_EN_GPIO_PIN                 GPIO_Pin_4
+#define MOTOR_LF_EN_GPIO_CLK                 RCC_AHB1Periph_GPIOA
+#define MOTOR_LF_FUN_EN_GPIO_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_LF_EN_GPIO_CLK, NewState)
+#define MOTOR_LF_DIR_GPIO                    GPIOA
+#define MOTOR_LF_DIR_GPIO_PIN                GPIO_Pin_6
+#define MOTOR_LF_DIR_GPIO_CLK                RCC_AHB1Periph_GPIOA
+#define MOTOR_LF_FUN_DIR_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_LF_DIR_GPIO_CLK, NewState)
 #define MOTOR_LF_TIM                     TIM2
 #define MOTOR_LF_AF_TIM                  GPIO_AF_TIM2
 #define MOTOR_LF_TIM_CC_ADRESS           TIM2->ARR
 #define MOTOR_LF_GPIO                    GPIOA
 #define MOTOR_LF_GPIO_PIN                GPIO_Pin_5
 #define MOTOR_LF_GPIO_PINSOURCE          GPIO_PinSource5
-#define MOTOR_LF_TIM_CLK                 RCC_APB1Periph_TIM2
-#define MOTOR_LF_FUN_TIM_CLK(NewState)   RCC_APB1PeriphClockCmd(MOTOR_LF_TIM_CLK, NewState)
 #define MOTOR_LF_GPIO_CLK                RCC_AHB1Periph_GPIOA
 #define MOTOR_LF_FUN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_LF_GPIO_CLK, NewState)
+#define MOTOR_LF_TIM_CLK                 RCC_APB1Periph_TIM2
+#define MOTOR_LF_FUN_TIM_CLK(NewState)   RCC_APB1PeriphClockCmd(MOTOR_LF_TIM_CLK, NewState)
 #define MOTOR_LF_FUN_TIM_OC_INIT         TIM_OC1Init
 #define MOTOR_LF_FUN_TIM_OC_PRE          TIM_OC1PreloadConfig
 #define MOTOR_LF_DMA                     DMA1
 #define MOTOR_LF_DMA_STREAM              DMA1_Stream5
 #define MOTOR_LF_DMA_CHANNEL             DMA_Channel_3
 #define MOTOR_LF_TIM_DMA_CC              TIM_DMA_CC1
+#define MOTOR_LF_TIM_DMA_FLAG_TCIF       DMA_FLAG_TCIF5
+#define MOTOR_LF_TIM_DMA_IT_TCIF         DMA_IT_TCIF5
+#define MOTOR_LF_TIM_DMA_IRQn            DMA1_Stream5_IRQn
+#define MOTOR_LF_TIM_DMA_IRQHandler(x)   DMA1_Stream5_IRQHandler(x)
 #define MOTOR_LF_DMA_CLK                 RCC_AHB1Periph_DMA1                             
 #define MOTOR_LF_FUN_DMA_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_LF_DMA_CLK , NewState)
-         
-#define MOTOR_LR_TIM            TIM3
-#define MOTOR_LR_AF_TIM         GPIO_AF_TIM3
-#define MOTOR_LR_TIM_CC_ADRESS  TIM3->ARR
-#define MOTOR_LR_GPIO           GPIOB
-#define MOTOR_LR_GPIO_PIN       GPIO_Pin_4
-#define MOTOR_LR_GPIO_PINSOURCE GPIO_PinSource4
-#define MOTOR_LR_TIM_CLK        RCC_APB1Periph_TIM3
-#define MOTOR_LR_FUN_TIM_CLK(NewState)   RCC_APB1PeriphClockCmd(MOTOR_LR_TIM_CLK, NewState)
-#define MOTOR_LR_GPIO_CLK       RCC_AHB1Periph_GPIOB
-#define MOTOR_LR_FUN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_LR_GPIO_CLK, NewState)
-#define MOTOR_LR_FUN_TIM_OC_INIT         TIM_OC1Init
-#define MOTOR_LR_FUN_TIM_OC_PRE          TIM_OC1PreloadConfig
-#define MOTOR_LR_DMA                     DMA1
-#define MOTOR_LR_DMA_STREAM              DMA1_Stream4
-#define MOTOR_LR_DMA_CHANNEL             DMA_Channel_5
-#define MOTOR_LR_TIM_DMA_CC              TIM_DMA_CC1
-#define MOTOR_LR_DMA_CLK                 RCC_AHB1Periph_DMA1                             
-#define MOTOR_LR_FUN_DMA_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_LR_DMA_CLK , NewState)
 
-#define MOTOR_RF_TIM            TIM1
-#define MOTOR_RF_AF_TIM         GPIO_AF_TIM1
-#define MOTOR_RF_TIM_CC_ADRESS  TIM1->ARR
-#define MOTOR_RF_GPIO           GPIOE
-#define MOTOR_RF_GPIO_PIN       GPIO_Pin_11
-#define MOTOR_RF_GPIO_PINSOURCE GPIO_PinSource11
-#define MOTOR_RF_TIM_CLK    RCC_APB2Periph_TIM1
-#define MOTOR_RF_FUN_TIM_CLK(NewState)   RCC_APB2PeriphClockCmd(MOTOR_RF_TIM_CLK, NewState)
-#define MOTOR_RF_GPIO_CLK   RCC_AHB1Periph_GPIOE
-#define MOTOR_RF_FUN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_RF_GPIO_CLK, NewState)
-#define MOTOR_RF_FUN_TIM_OC_INIT         TIM_OC2Init
-#define MOTOR_RF_FUN_TIM_OC_PRE          TIM_OC2PreloadConfig
-#define MOTOR_RF_DMA                     DMA2
-#define MOTOR_RF_DMA_STREAM              DMA2_Stream2
-#define MOTOR_RF_DMA_CHANNEL             DMA_Channel_6
-#define MOTOR_RF_TIM_DMA_CC              TIM_DMA_CC2
-#define MOTOR_RF_DMA_CLK                 RCC_AHB1Periph_DMA2                             
-#define MOTOR_RF_FUN_DMA_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_RF_DMA_CLK , NewState)
+#define MOTOR_LR_EN_GPIO                     GPIOE
+#define MOTOR_LR_EN_GPIO_PIN                 GPIO_Pin_10
+#define MOTOR_LR_EN_GPIO_CLK                 RCC_AHB1Periph_GPIOE
+#define MOTOR_LR_FUN_EN_GPIO_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_LR_EN_GPIO_CLK, NewState)
+#define MOTOR_LR_DIR_GPIO                    GPIOE
+#define MOTOR_LR_DIR_GPIO_PIN                GPIO_Pin_12
+#define MOTOR_LR_DIR_GPIO_CLK                RCC_AHB1Periph_GPIOE
+#define MOTOR_LR_FUN_DIR_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_LR_DIR_GPIO_CLK, NewState)
+#define MOTOR_LR_TIM                        TIM1
+#define MOTOR_LR_AF_TIM                     GPIO_AF_TIM1
+#define MOTOR_LR_TIM_CC_ADRESS              TIM1->ARR
+#define MOTOR_LR_GPIO                       GPIOE
+#define MOTOR_LR_GPIO_PIN                   GPIO_Pin_11
+#define MOTOR_LR_GPIO_PINSOURCE             GPIO_PinSource11
+#define MOTOR_LR_TIM_CLK                    RCC_APB2Periph_TIM1
+#define MOTOR_LR_FUN_TIM_CLK(NewState)      RCC_APB2PeriphClockCmd(MOTOR_LR_TIM_CLK, NewState)
+#define MOTOR_LR_GPIO_CLK                   RCC_AHB1Periph_GPIOE
+#define MOTOR_LR_FUN_GPIO_CLK(NewState)     RCC_AHB1PeriphClockCmd(MOTOR_LR_GPIO_CLK, NewState)
+#define MOTOR_LR_FUN_TIM_OC_INIT            TIM_OC2Init
+#define MOTOR_LR_FUN_TIM_OC_PRE             TIM_OC2PreloadConfig
+#define MOTOR_LR_DMA                        DMA2
+#define MOTOR_LR_DMA_STREAM                 DMA2_Stream2
+#define MOTOR_LR_DMA_CHANNEL                DMA_Channel_6
+#define MOTOR_LR_TIM_DMA_CC                 TIM_DMA_CC2
+#define MOTOR_LR_TIM_DMA_FLAG_TCIF          DMA_FLAG_TCIF2
+#define MOTOR_LR_TIM_DMA_IT_TCIF            DMA_IT_TCIF2
+#define MOTOR_LR_TIM_DMA_IRQn               DMA2_Stream2_IRQn
+#define MOTOR_LR_TIM_DMA_IRQHandler(x)      DMA2_Stream2_IRQHandler(x)
+#define MOTOR_LR_DMA_CLK                    RCC_AHB1Periph_DMA2                             
+#define MOTOR_LR_FUN_DMA_CLK(NewState)      RCC_AHB1PeriphClockCmd(MOTOR_LR_DMA_CLK , NewState)
 
-#define MOTOR_RR_TIM            TIM8
-#define MOTOR_RR_AF_TIM         GPIO_AF_TIM8
-#define MOTOR_RR_TIM_CC_ADRESS  TIM8->ARR
-#define MOTOR_RR_GPIO           GPIOC
-#define MOTOR_RR_GPIO_PIN       GPIO_Pin_8
-#define MOTOR_RR_GPIO_PINSOURCE GPIO_PinSource8
-#define MOTOR_RR_TIM_CLK        RCC_APB2Periph_TIM8
+#define MOTOR_RF_EN_GPIO                    GPIOB
+#define MOTOR_RF_EN_GPIO_PIN                GPIO_Pin_3
+#define MOTOR_RF_EN_GPIO_CLK                RCC_AHB1Periph_GPIOB
+#define MOTOR_RF_FUN_EN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_RF_EN_GPIO_CLK, NewState)
+#define MOTOR_RF_DIR_GPIO                   GPIOB
+#define MOTOR_RF_DIR_GPIO_PIN               GPIO_Pin_5
+#define MOTOR_RF_DIR_GPIO_CLK               RCC_AHB1Periph_GPIOB
+#define MOTOR_RF_FUN_DIR_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MOTOR_RF_DIR_GPIO_CLK, NewState)
+#define MOTOR_RF_TIM                        TIM3
+#define MOTOR_RF_AF_TIM                     GPIO_AF_TIM3
+#define MOTOR_RF_TIM_CC_ADRESS              TIM3->ARR
+#define MOTOR_RF_GPIO                       GPIOB
+#define MOTOR_RF_GPIO_PIN                   GPIO_Pin_4
+#define MOTOR_RF_GPIO_PINSOURCE             GPIO_PinSource4
+#define MOTOR_RF_TIM_CLK                    RCC_APB1Periph_TIM3
+#define MOTOR_RF_FUN_TIM_CLK(NewState)      RCC_APB1PeriphClockCmd(MOTOR_RF_TIM_CLK, NewState)
+#define MOTOR_RF_GPIO_CLK                   RCC_AHB1Periph_GPIOB
+#define MOTOR_RF_FUN_GPIO_CLK(NewState)     RCC_AHB1PeriphClockCmd(MOTOR_RF_GPIO_CLK, NewState)
+#define MOTOR_RF_FUN_TIM_OC_INIT            TIM_OC1Init
+#define MOTOR_RF_FUN_TIM_OC_PRE             TIM_OC1PreloadConfig
+#define MOTOR_RF_DMA                        DMA1
+#define MOTOR_RF_DMA_STREAM                 DMA1_Stream4
+#define MOTOR_RF_DMA_CHANNEL                DMA_Channel_5
+#define MOTOR_RF_TIM_DMA_CC                 TIM_DMA_CC1
+#define MOTOR_RF_TIM_DMA_FLAG_TCIF          DMA_FLAG_TCIF4
+#define MOTOR_RF_TIM_DMA_IT_TCIF            DMA_IT_TCIF4
+#define MOTOR_RF_TIM_DMA_IRQn               DMA1_Stream4_IRQn
+#define MOTOR_RF_TIM_DMA_IRQHandler(x)      DMA1_Stream4_IRQHandler(x)
+#define MOTOR_RF_DMA_CLK                    RCC_AHB1Periph_DMA1                             
+#define MOTOR_RF_FUN_DMA_CLK(NewState)      RCC_AHB1PeriphClockCmd(MOTOR_RF_DMA_CLK , NewState)
+
+#define MOTOR_RR_EN_GPIO                    GPIOC
+#define MOTOR_RR_EN_GPIO_PIN                GPIO_Pin_10
+#define MOTOR_RR_EN_GPIO_CLK                RCC_AHB1Periph_GPIOC
+#define MOTOR_RR_FUN_EN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_RR_EN_GPIO_CLK, NewState)
+#define MOTOR_RR_DIR_GPIO                    GPIOC
+#define MOTOR_RR_DIR_GPIO_PIN                GPIO_Pin_11
+#define MOTOR_RR_DIR_GPIO_CLK                RCC_AHB1Periph_GPIOC
+#define MOTOR_RR_FUN_DIR_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_RR_DIR_GPIO_CLK, NewState)
+#define MOTOR_RR_TIM                     TIM8
+#define MOTOR_RR_AF_TIM                  GPIO_AF_TIM8
+#define MOTOR_RR_TIM_CC_ADRESS           TIM8->ARR
+#define MOTOR_RR_GPIO                    GPIOC
+#define MOTOR_RR_GPIO_PIN                GPIO_Pin_8
+#define MOTOR_RR_GPIO_PINSOURCE          GPIO_PinSource8
+#define MOTOR_RR_TIM_CLK                 RCC_APB2Periph_TIM8
 #define MOTOR_RR_FUN_TIM_CLK(NewState)   RCC_APB2PeriphClockCmd(MOTOR_RR_TIM_CLK, NewState)
-#define MOTOR_RR_GPIO_CLK   RCC_AHB1Periph_GPIOC
+#define MOTOR_RR_GPIO_CLK                RCC_AHB1Periph_GPIOC
 #define MOTOR_RR_FUN_GPIO_CLK(NewState)  RCC_AHB1PeriphClockCmd(MOTOR_RR_GPIO_CLK, NewState)
 #define MOTOR_RR_FUN_TIM_OC_INIT         TIM_OC3Init
 #define MOTOR_RR_FUN_TIM_OC_PRE          TIM_OC3PreloadConfig
@@ -135,6 +196,10 @@ typedef uint8_t bool;
 #define MOTOR_RR_DMA_STREAM              DMA2_Stream4
 #define MOTOR_RR_DMA_CHANNEL             DMA_Channel_7
 #define MOTOR_RR_TIM_DMA_CC              TIM_DMA_CC3
+#define MOTOR_RR_TIM_DMA_FLAG_TCIF       DMA_FLAG_TCIF4
+#define MOTOR_RR_TIM_DMA_IT_TCIF         DMA_IT_TCIF4
+#define MOTOR_RR_TIM_DMA_IRQn            DMA2_Stream4_IRQn
+#define MOTOR_RR_TIM_DMA_IRQHandler(x)   DMA2_Stream4_IRQHandler(x)
 #define MOTOR_RR_DMA_CLK                 RCC_AHB1Periph_DMA2                             
 #define MOTOR_RR_FUN_DMA_CLK(NewState)   RCC_AHB1PeriphClockCmd(MOTOR_RR_DMA_CLK , NewState)
 
@@ -207,7 +272,6 @@ typedef uint8_t bool;
 #define MOTOR_LR_UART_DMA_CLK                   RCC_AHB1Periph_DMA1                             
 #define MOTOR_LR_UART_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(MOTOR_LR_UART_DMA_CLK , NewState)
 
-
 #define MOTOR_RF_UART                           USART1
 #define MOTOR_RF_UART_GPIO_AF_UART              GPIO_AF_USART1
 #define MOTOR_RF_UART_UART_CLK                  RCC_APB2Periph_USART1
@@ -269,7 +333,6 @@ typedef uint8_t bool;
 #define COMM_IRQHandler(x)             USART6_IRQHandler(x)
 
 #endif //BOTTOM_LEVEL
-
 #endif //_CONFIG_H_
 
 

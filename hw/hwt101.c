@@ -53,9 +53,9 @@ void IMU_uart_init(uint32_t bound){
 
 	NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannel                   = IMU_UART_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 2;		
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;			
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 3;		
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;	
     NVIC_Init(&NVIC_InitStructure);	
 
 	USART_ClearFlag(IMU_UART, USART_FLAG_TC); //清除发送完成标志
@@ -137,9 +137,9 @@ void IMU_UART_IRQHandler(void){
 		   HWT101_Struct.MSG_Rx_Buff[12] == 0x53 && \
 		   HWT101_Struct.MSG_Rx_Buff[21] == ParityByte 
 		   ){
-			 HWT101_Struct.YawAngle = 
-			(HWT101_Struct.MSG_Rx_Buff[7]<<8 + HWT101_Struct.MSG_Rx_Buff[6]) / 32768.0 * 180;
-			 HWT101_Struct.GetITSta = 1;
+			short tmp = HWT101_Struct.MSG_Rx_Buff[18]<<8 | HWT101_Struct.MSG_Rx_Buff[17];
+			HWT101_Struct.YawAngle = tmp / 32768.0 * 180;
+			HWT101_Struct.GetITSta = 1;
 		}else{
 			HWT101_Struct.GetITSta = -1;
 			memset(HWT101_Struct.MSG_Rx_Buff,0,sizeof(HWT101_Struct.MSG_Rx_Buff));
@@ -153,7 +153,5 @@ void IMU_UART_IRQHandler(void){
 		//    temp = IMU_UART->DR; //清USART_IT_IDLE标志
 	}
 }
-
-
 
 #endif //BOTTOM

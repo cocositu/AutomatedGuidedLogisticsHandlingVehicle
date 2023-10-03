@@ -3,11 +3,18 @@
 #ifdef BOTTOM_LEVEL
 #ifdef STEPPER_MOTOR_DRIVER
 
+#define DIAMETER_WHEEL  76 //mm
+#define MicroStep       4        
+#define TotalStep       800   
+#define MAX_Vel         3 
+#define Max_RealVel     2400
+
+
 StepBufferType StepMotorBuffer[4][STEPS_LOOP_MAXNUM+1];
-StepBufferType *StepMotorLFBuffer = StepMotorBuffer[0];
-StepBufferType *StepMotorLRBuffer = StepMotorBuffer[1];
-StepBufferType *StepMotorRFBuffer = StepMotorBuffer[2];
-StepBufferType *StepMotorRRBuffer = StepMotorBuffer[3];
+StepBufferType *StepMotorLFBuffer = StepMotorBuffer[MOTOR_LF_ADDR-1];
+StepBufferType *StepMotorLRBuffer = StepMotorBuffer[MOTOR_LR_ADDR-1];
+StepBufferType *StepMotorRFBuffer = StepMotorBuffer[MOTOR_RF_ADDR-1];
+StepBufferType *StepMotorRRBuffer = StepMotorBuffer[MOTOR_RR_ADDR-1];
 
 MotorUartBufferType MotorUartBuffer[5][STEPS_UART_BUFFER_LENTH];
 MotorUartBufferType *MotorLFUartBuffer = MotorUartBuffer[MOTOR_LF_ADDR];
@@ -15,9 +22,28 @@ MotorUartBufferType *MotorLRUartBuffer = MotorUartBuffer[MOTOR_LR_ADDR];
 MotorUartBufferType *MotorRFUartBuffer = MotorUartBuffer[MOTOR_RF_ADDR];
 MotorUartBufferType *MotorRRUartBuffer = MotorUartBuffer[MOTOR_RR_ADDR];
 
-void MOTOR_LF_TIM_Init(void){  
-    MOTOR_LF_FUN_GPIO_CLK(ENABLE);	
+
+void MOTOR_LF_TIM_Init(void){
+
     GPIO_InitTypeDef  GPIO_InitStructure;
+
+    MOTOR_LF_FUN_EN_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_LF_EN_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_LF_EN_GPIO, &GPIO_InitStructure);
+
+    MOTOR_LF_FUN_DIR_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_LF_DIR_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_LF_DIR_GPIO, &GPIO_InitStructure);
+
+    MOTOR_LF_FUN_GPIO_CLK(ENABLE);	
 	GPIO_InitStructure.GPIO_Pin   = MOTOR_LF_GPIO_PIN; 
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;  
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -29,7 +55,7 @@ void MOTOR_LF_TIM_Init(void){
     MOTOR_LF_FUN_TIM_CLK(ENABLE);
     TIM_DeInit(MOTOR_LF_TIM);
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_TimeBaseStructure.TIM_Prescaler         = 84-1;
+    TIM_TimeBaseStructure.TIM_Prescaler         = 840-1;
     TIM_TimeBaseStructure.TIM_Period            = 1000-1;
     TIM_TimeBaseStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode       = TIM_CounterMode_Up;
@@ -38,7 +64,7 @@ void MOTOR_LF_TIM_Init(void){
 
     TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode       = TIM_OCMode_PWM1;
-    TIM_OCInitStructure.TIM_Pulse        = 50;/*占空比*/
+    TIM_OCInitStructure.TIM_Pulse        = 10;/*占空比*/
     TIM_OCInitStructure.TIM_OutputState  = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_OCPolarity   = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OCIdleState  = TIM_OCIdleState_Reset;
@@ -62,44 +88,46 @@ void MOTOR_LF_TIM_Init(void){
     DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Word;
     DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;
     DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
-
     DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable;
     DMA_InitStructure.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full;
     DMA_InitStructure.DMA_MemoryBurst        = DMA_MemoryBurst_Single;
     DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
     DMA_Init(MOTOR_LF_DMA_STREAM, &DMA_InitStructure);
-    
+    TIM_DMACmd(MOTOR_LF_TIM, MOTOR_LF_TIM_DMA_CC, ENABLE);
+
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01; //抢占优先级1
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x03; //子优先级3
-    NVIC_InitStructure.NVIC_IRQChannel                   = DMA1_Stream5_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 2; 
+    NVIC_InitStructure.NVIC_IRQChannel                   = MOTOR_LF_TIM_DMA_IRQn ;
     NVIC_Init(&NVIC_InitStructure);
 
-    DMA_ClearFlag(MOTOR_LF_DMA_STREAM, DMA_FLAG_TCIF5);
-    DMA_ClearFlag(MOTOR_LF_DMA_STREAM, DMA_IT_TC);        //第一次不进中断
-    DMA_ITConfig(MOTOR_LF_DMA_STREAM, DMA_IT_TC, ENABLE); //配置DMA发送完成后产生中断
-    TIM_DMACmd(MOTOR_LF_TIM, TIM_DMA_Update, ENABLE);
-    TIM_DMAConfig(MOTOR_LF_TIM, TIM_DMABase_ARR, TIM_DMABurstLength_1Transfer);
-    DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
-    TIM_Cmd(MOTOR_LF_TIM, DISABLE); 
+    DMA_ClearFlag(MOTOR_LF_DMA_STREAM, DMA_IT_TC);        
+    DMA_ITConfig(MOTOR_LF_DMA_STREAM, DMA_IT_TC, ENABLE); 
 }
 
-    // TIM_GenerateEvent(MOTOR_LF_TIM, TIM_EventSource_Update);
-    //TIM_DMACmd(MOTOR_LF_TIM, MOTOR_LF_TIM_DMA_CC, ENABLE);
-
-//DMA_ITConfig(MOTOR_LF_DMA_STREAM, DMA_IT_TC, ENABLE); //配置DMA发送完成后产生中断
-//DMA_ClearFlag(MOTOR_LF_DMA_STREAM, DMA_FLAG_TCIF5);
-// NVIC_InitTypeDef NVIC_InitStructure;
-// NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-// NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01; //抢占优先级1
-// NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x03; //子优先级3
-// NVIC_InitStructure.NVIC_IRQChannel                   = DMA1_Stream5_IRQn;
-// NVIC_Init(&NVIC_InitStructure);
 
 void MOTOR_LR_TIM_Init(void){
-    MOTOR_LR_FUN_GPIO_CLK(ENABLE);	
+
     GPIO_InitTypeDef  GPIO_InitStructure;
+
+    MOTOR_LR_FUN_EN_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_LR_EN_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_LR_EN_GPIO, &GPIO_InitStructure);
+
+    MOTOR_LR_FUN_DIR_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_LR_DIR_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_LR_DIR_GPIO, &GPIO_InitStructure);
+
+    MOTOR_LR_FUN_GPIO_CLK(ENABLE);	
 	GPIO_InitStructure.GPIO_Pin   = MOTOR_LR_GPIO_PIN; 
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;  
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -111,7 +139,7 @@ void MOTOR_LR_TIM_Init(void){
     MOTOR_LR_FUN_TIM_CLK(ENABLE);
     TIM_DeInit(MOTOR_LR_TIM);
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_TimeBaseStructure.TIM_Prescaler         = 84-1;
+    TIM_TimeBaseStructure.TIM_Prescaler         = 1680-1;
     TIM_TimeBaseStructure.TIM_Period            = 1000-1;
     TIM_TimeBaseStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode       = TIM_CounterMode_Up;
@@ -120,7 +148,7 @@ void MOTOR_LR_TIM_Init(void){
 
     TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode       = TIM_OCMode_PWM1;
-    TIM_OCInitStructure.TIM_Pulse        = 100;/*占空比*/
+    TIM_OCInitStructure.TIM_Pulse        = 10;/*占空比*/
     TIM_OCInitStructure.TIM_OutputState  = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_OCPolarity   = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OCIdleState  = TIM_OCIdleState_Reset;
@@ -140,8 +168,8 @@ void MOTOR_LR_TIM_Init(void){
     DMA_InitStructure.DMA_BufferSize         = STEPS_LOOP_MAXNUM;
     DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
     DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
-    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_HalfWord;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Word;
     DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;
     DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
     DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable;
@@ -150,11 +178,39 @@ void MOTOR_LR_TIM_Init(void){
     DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
     DMA_Init(MOTOR_LR_DMA_STREAM, &DMA_InitStructure);
     TIM_DMACmd(MOTOR_LR_TIM, MOTOR_LR_TIM_DMA_CC, ENABLE);
+
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 2; 
+    NVIC_InitStructure.NVIC_IRQChannel                   = MOTOR_LR_TIM_DMA_IRQn ;
+    NVIC_Init(&NVIC_InitStructure);
+
+    DMA_ClearFlag(MOTOR_LR_DMA_STREAM, DMA_IT_TC);        
+    DMA_ITConfig(MOTOR_LR_DMA_STREAM, DMA_IT_TC, ENABLE); 
 }
 
 void MOTOR_RF_TIM_Init(void){
-    MOTOR_RF_FUN_GPIO_CLK(ENABLE);
+
     GPIO_InitTypeDef  GPIO_InitStructure;
+
+    MOTOR_RF_FUN_EN_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_RF_EN_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_RF_EN_GPIO, &GPIO_InitStructure);
+
+    MOTOR_RF_FUN_DIR_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_RF_DIR_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_RF_DIR_GPIO, &GPIO_InitStructure);
+
+    MOTOR_RF_FUN_GPIO_CLK(ENABLE);
 	GPIO_InitStructure.GPIO_Pin   = MOTOR_RF_GPIO_PIN; 
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;  
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -166,7 +222,7 @@ void MOTOR_RF_TIM_Init(void){
     MOTOR_RF_FUN_TIM_CLK(ENABLE);
     TIM_DeInit(MOTOR_RF_TIM);
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_TimeBaseStructure.TIM_Prescaler         = 168-1;
+    TIM_TimeBaseStructure.TIM_Prescaler         = 840-1;
     TIM_TimeBaseStructure.TIM_Period            = 1000-1;
     TIM_TimeBaseStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode       = TIM_CounterMode_Up;
@@ -175,7 +231,7 @@ void MOTOR_RF_TIM_Init(void){
 
     TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode       = TIM_OCMode_PWM1;
-    TIM_OCInitStructure.TIM_Pulse        = 100;/*占空比*/
+    TIM_OCInitStructure.TIM_Pulse        = 10;/*占空比*/
     TIM_OCInitStructure.TIM_OutputState  = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_OCPolarity   = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OCIdleState  = TIM_OCIdleState_Reset;
@@ -196,8 +252,8 @@ void MOTOR_RF_TIM_Init(void){
     DMA_InitStructure.DMA_BufferSize         = STEPS_LOOP_MAXNUM;
     DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
     DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
-    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_HalfWord;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Word;
     DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;
     DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
     DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable;
@@ -206,10 +262,41 @@ void MOTOR_RF_TIM_Init(void){
     DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
     DMA_Init(MOTOR_RF_DMA_STREAM, &DMA_InitStructure);
     TIM_DMACmd(MOTOR_RF_TIM, MOTOR_RF_TIM_DMA_CC, ENABLE);
+
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 2; 
+    NVIC_InitStructure.NVIC_IRQChannel                   = MOTOR_RF_TIM_DMA_IRQn ;
+    NVIC_Init(&NVIC_InitStructure);
+
+    DMA_ClearFlag(MOTOR_RF_DMA_STREAM, DMA_IT_TC);        
+    DMA_ITConfig(MOTOR_RF_DMA_STREAM, DMA_IT_TC, ENABLE); 
+
+    //DMA_ClearFlag(MOTOR_RF_DMA_STREAM, DMA_FLAG_TCIF2);
+   // DMA_ClearFlag(MOTOR_RF_DMA_STREAM, DMA_IT_TC);        //第一次不进中断
+   // DMA_ITConfig(MOTOR_RF_DMA_STREAM, DMA_IT_TC, ENABLE); //配置DMA发送完成后产生中断
 }
 
 void MOTOR_RR_TIM_Init(void){
     GPIO_InitTypeDef  GPIO_InitStructure;
+
+    MOTOR_RR_FUN_EN_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_RR_EN_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_RR_EN_GPIO, &GPIO_InitStructure);
+
+    MOTOR_RR_FUN_DIR_GPIO_CLK(ENABLE);	
+	GPIO_InitStructure.GPIO_Pin   = MOTOR_RR_DIR_GPIO_PIN; 
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_Init(MOTOR_RR_DIR_GPIO, &GPIO_InitStructure);
+
 	MOTOR_RR_FUN_GPIO_CLK(ENABLE);	
 	GPIO_InitStructure.GPIO_Pin   = MOTOR_RR_GPIO_PIN; 
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;  
@@ -222,7 +309,7 @@ void MOTOR_RR_TIM_Init(void){
     MOTOR_RR_FUN_TIM_CLK(ENABLE);
     TIM_DeInit(MOTOR_RR_TIM);
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_TimeBaseStructure.TIM_Prescaler         = 168-1;
+    TIM_TimeBaseStructure.TIM_Prescaler         = 1680-1;
     TIM_TimeBaseStructure.TIM_Period            = 1000-1;
     TIM_TimeBaseStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode       = TIM_CounterMode_Up;
@@ -231,7 +318,7 @@ void MOTOR_RR_TIM_Init(void){
 
     TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode       = TIM_OCMode_PWM1;
-    TIM_OCInitStructure.TIM_Pulse        = 50;/*占空比*/
+    TIM_OCInitStructure.TIM_Pulse        = 10;/*占空比*/
     TIM_OCInitStructure.TIM_OutputState  = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_OCPolarity   = TIM_OCPolarity_High;
     TIM_OCInitStructure.TIM_OCIdleState  = TIM_OCIdleState_Reset;
@@ -240,8 +327,7 @@ void MOTOR_RR_TIM_Init(void){
     TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCNIdleState_Reset;
     MOTOR_RR_FUN_TIM_OC_INIT(MOTOR_RR_TIM, &TIM_OCInitStructure);
     MOTOR_RR_FUN_TIM_OC_PRE(MOTOR_RR_TIM, TIM_OCPreload_Enable);
-    // TIM_CtrlPWMOutputs(MOTOR_RR_TIM, ENABLE);
-
+    
     MOTOR_RR_FUN_DMA_CLK(ENABLE);
     DMA_DeInit(MOTOR_RR_DMA_STREAM);
     DMA_InitTypeDef DMA_InitStructure;
@@ -252,8 +338,8 @@ void MOTOR_RR_TIM_Init(void){
     DMA_InitStructure.DMA_BufferSize         = STEPS_LOOP_MAXNUM;
     DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
     DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
-    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_HalfWord;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Word;
     DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;
     DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
     DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable;
@@ -262,16 +348,18 @@ void MOTOR_RR_TIM_Init(void){
     DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
     DMA_Init(MOTOR_RR_DMA_STREAM, &DMA_InitStructure);
     TIM_DMACmd(MOTOR_RR_TIM, MOTOR_RR_TIM_DMA_CC, ENABLE);
+
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 2; 
+    NVIC_InitStructure.NVIC_IRQChannel                   = MOTOR_RR_TIM_DMA_IRQn ;
+    NVIC_Init(&NVIC_InitStructure);
+
+    DMA_ClearFlag(MOTOR_RR_DMA_STREAM, DMA_IT_TC);        
+    DMA_ITConfig(MOTOR_RR_DMA_STREAM, DMA_IT_TC, ENABLE); 
 }
 
-void MOTOR_LF_DMA_Init(void){
-}
-void MOTOR_LR_DMA_Init(void){
-}
-void MOTOR_RF_DMA_Init(void){
-}
-void MOTOR_RR_DMA_Init(void){
-}
 
 void  MOTOR_LF_UART_Init(uint32_t bound){
 
@@ -517,13 +605,18 @@ void sendMotorUart_Once(MOTOR_UART_ADDR_ENUM Motor_addr, int Msg_Lenth){
 }
 
 void MotorUartCtrl(                                                                         \
-    MOTOR_UART_ADDR_ENUM Motor_addr, uint8_t Motor_dir, uint16_t Motor_vel,                 \
+    MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, uint16_t Motor_vel,     \
     uint8_t Motor_acc, uint32_t Motor_clk, ABS_OR_REL_FLAG Abs_or_Rel_Flag, bool isSend     \
-){
-    
+){  
+    uint8_t real_Motor_dir = 0;
+    if(Motor_addr == MOTOR_LF_ADDR || Motor_addr == MOTOR_LR_ADDR){
+        real_Motor_dir = 0x00;
+    }else if(Motor_addr == MOTOR_RF_ADDR || Motor_addr == MOTOR_RR_ADDR){
+        real_Motor_dir = 0x01;
+    }
     MotorUartBuffer[Motor_addr][0]  = Motor_addr;
     MotorUartBuffer[Motor_addr][1]  = 0xFD;
-    MotorUartBuffer[Motor_addr][2]  = Motor_dir;
+    MotorUartBuffer[Motor_addr][2]  = real_Motor_dir;
     MotorUartBuffer[Motor_addr][3]  = (uint8_t)(Motor_vel>>8);
     MotorUartBuffer[Motor_addr][4]  = (uint8_t)(Motor_vel>>0);
     MotorUartBuffer[Motor_addr][5]  = Motor_acc;
@@ -537,6 +630,281 @@ void MotorUartCtrl(                                                             
     if(isSend == True){
         sendMotorUart_Once(Motor_addr, 13);
     }
+}
+
+void Fun_Dir_StepMotor(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir){
+    GPIO_TypeDef * DIR_GPIO = NULL;
+    uint16_t DIR_GPIO_PIN   = NULL;
+    switch (Motor_addr){
+    case MOTOR_LF_ADDR:
+        DIR_GPIO      = MOTOR_LF_DIR_GPIO;
+        DIR_GPIO_PIN  = MOTOR_LF_DIR_GPIO_PIN;
+        break;
+    case MOTOR_LR_ADDR:
+        DIR_GPIO      = MOTOR_LR_DIR_GPIO;
+        DIR_GPIO_PIN  = MOTOR_LR_DIR_GPIO_PIN;
+        break;  
+    case MOTOR_RF_ADDR:
+        DIR_GPIO      = MOTOR_RF_DIR_GPIO;
+        DIR_GPIO_PIN  = MOTOR_RF_DIR_GPIO_PIN;
+        break;
+    case MOTOR_RR_ADDR:
+        DIR_GPIO      = MOTOR_RR_DIR_GPIO;
+        DIR_GPIO_PIN  = MOTOR_RR_DIR_GPIO_PIN;
+        break;
+    }
+    if(Motor_dir) GPIO_SetBits(DIR_GPIO, DIR_GPIO_PIN);
+    else          GPIO_ResetBits(DIR_GPIO, DIR_GPIO_PIN);
+}
+
+void Fun_isGearShift(MOTOR_UART_ADDR_ENUM Motor_addr, bool isGearShift){
+    DMA_Stream_TypeDef * DMA_STREAMx = NULL;
+    switch (Motor_addr){
+        case MOTOR_LF_ADDR:
+                DMA_STREAMx   = MOTOR_LF_DMA_STREAM;
+            break;
+        case MOTOR_LR_ADDR:
+                DMA_STREAMx   = MOTOR_LR_DMA_STREAM;
+            break;
+        case MOTOR_RF_ADDR:
+                DMA_STREAMx   = MOTOR_RF_DMA_STREAM;
+            break;
+        case MOTOR_RR_ADDR:
+                DMA_STREAMx   = MOTOR_RR_DMA_STREAM;
+            break;
+     }
+     if(isGearShift) {
+        DMA_STREAMx->CR &= ~DMA_SxCR_EN; // 清除EN位
+        DMA_STREAMx->CR |= DMA_SxCR_MINC; // 设置MINC位
+        DMA_STREAMx->CR |= DMA_SxCR_EN; // 设置EN位      
+    }else{
+        DMA_STREAMx->CR &= ~DMA_SxCR_EN; // 清除EN位
+        DMA_STREAMx->CR &= ~DMA_SxCR_MINC; // 关闭内存地址自增
+        DMA_STREAMx->CR |= DMA_SxCR_EN; // 设置EN位      
+    }
+}
+
+
+void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr){
+    DMA_Stream_TypeDef * DMA_STREAMx = NULL;
+    uint32_t DMA_FLAG_TCIF = 0;
+    TIM_TypeDef * TIMx = NULL; 
+    if(Motor_addr ==  MOTOR_ALL_ADDR){
+        TIM_ARRPreloadConfig(MOTOR_LF_TIM, ENABLE);//ARPE使能
+        TIM_ARRPreloadConfig(MOTOR_LR_TIM, ENABLE);//ARPE使能
+        TIM_ARRPreloadConfig(MOTOR_RF_TIM, ENABLE);//ARPE使能
+        TIM_ARRPreloadConfig(MOTOR_RR_TIM, ENABLE);//ARPE使能
+  	    MOTOR_LF_TIM->EGR |= 0x01;
+        MOTOR_LR_TIM->EGR |= 0x01;
+        MOTOR_RF_TIM->EGR |= 0x01;
+        MOTOR_RR_TIM->EGR |= 0x01;
+        DMA_ClearFlag(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_FLAG_TCIF);	    
+        DMA_ClearFlag(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_FLAG_TCIF);     	    
+        DMA_ClearFlag(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_FLAG_TCIF);        
+        DMA_ClearFlag(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_FLAG_TCIF);
+        DMA_Cmd(MOTOR_LF_DMA_STREAM, ENABLE);
+        DMA_Cmd(MOTOR_LR_DMA_STREAM, ENABLE);
+	    DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
+        DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
+        TIM_Cmd(MOTOR_LF_TIM, ENABLE);
+        TIM_Cmd(MOTOR_LR_TIM, ENABLE);
+	    TIM_Cmd(MOTOR_RR_TIM, ENABLE);
+        TIM_Cmd(MOTOR_RF_TIM, ENABLE); 
+        TIM_CtrlPWMOutputs(TIM1, ENABLE);
+        TIM_CtrlPWMOutputs(TIM8, ENABLE);
+        return;
+    }
+    switch (Motor_addr){
+    case MOTOR_LF_ADDR:
+        DMA_STREAMx   = MOTOR_LF_DMA_STREAM;
+        DMA_FLAG_TCIF = MOTOR_LF_TIM_DMA_FLAG_TCIF;
+        TIMx          = MOTOR_LF_TIM;
+        break;
+    case MOTOR_LR_ADDR:
+        DMA_STREAMx   = MOTOR_LR_DMA_STREAM;
+        DMA_FLAG_TCIF = MOTOR_LR_TIM_DMA_FLAG_TCIF;
+        TIMx          = MOTOR_LR_TIM;
+        break;
+    case MOTOR_RF_ADDR:
+        DMA_STREAMx   = MOTOR_RF_DMA_STREAM;
+        DMA_FLAG_TCIF = MOTOR_RF_TIM_DMA_FLAG_TCIF;
+        TIMx          = MOTOR_RF_TIM;
+        break;
+    case MOTOR_RR_ADDR:
+        DMA_STREAMx   = MOTOR_RR_DMA_STREAM;
+        DMA_FLAG_TCIF = MOTOR_RR_TIM_DMA_FLAG_TCIF;
+        TIMx          = MOTOR_RR_TIM;
+        break;
+    }
+    TIM_ARRPreloadConfig(TIMx, ENABLE);//ARPE使能
+  	TIMx->EGR |= 0x01;
+    DMA_ClearFlag(DMA_STREAMx, DMA_FLAG_TCIF);
+	DMA_Cmd(DMA_STREAMx, ENABLE);
+	TIM_Cmd(TIMx, ENABLE);
+    if(TIMx == TIM1 || TIMx == TIM8) TIM_CtrlPWMOutputs(TIMx, ENABLE);
+}
+
+void Fun_DataLenth_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr, uint32_t translenth){
+    DMA_Stream_TypeDef * DMA_STREAMx = NULL;
+    switch (Motor_addr){
+    case MOTOR_LF_ADDR:
+        DMA_STREAMx   = MOTOR_LF_DMA_STREAM;
+        break;
+    case MOTOR_LR_ADDR:
+        DMA_STREAMx   = MOTOR_LR_DMA_STREAM;   
+        break;
+    case MOTOR_RF_ADDR:
+        DMA_STREAMx   = MOTOR_RF_DMA_STREAM;
+        break;
+    case MOTOR_RR_ADDR:
+        DMA_STREAMx   = MOTOR_RR_DMA_STREAM; 
+        break;
+    }
+    DMA_STREAMx->NDTR = translenth;
+}
+
+uint32_t StepCycles[5]     = {0};
+uint32_t StepCyclesRema[5] = {0};
+
+void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, 
+    uint32_t Motor_vel,uint32_t Motor_acc, uint32_t Motor_clk, bool isGearShift, bool isEn){ 
+    if(Motor_vel > 2400) Motor_vel = 2400;
+    Fun_Dir_StepMotor(Motor_addr, Motor_dir);
+
+    if(isGearShift == False) 
+        StepMotorBuffer[Motor_addr-1][0] = (StepBufferType)(100000 / Motor_vel);
+
+    if(Motor_clk < STEPS_LOOP_MAXNUM) Fun_DataLenth_DMA_Motor(Motor_addr, Motor_clk);
+    else  Fun_DataLenth_DMA_Motor(Motor_addr, STEPS_LOOP_MAXNUM);
+
+    Fun_isGearShift(Motor_addr, isGearShift);   
+    
+    StepCycles[Motor_addr]     = Motor_clk / STEPS_LOOP_MAXNUM;
+    StepCyclesRema[Motor_addr] = Motor_clk % STEPS_LOOP_MAXNUM;  
+
+    if(isEn)    Fun_En_DMA_Motor(Motor_addr);    
+}
+
+void MOTOR_LF_TIM_DMA_IRQHandler(void){
+    static int i = 1;
+ if (DMA_GetITStatus(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_IT_TCIF)){
+    if((i >=  StepCycles[MOTOR_LF_ADDR] && StepCyclesRema[MOTOR_LF_ADDR] == 0) || i > StepCycles[MOTOR_LF_ADDR] ){
+            TIM_Cmd(MOTOR_LF_TIM, DISABLE);
+            DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
+             i = 0;
+    }else if(i == StepCycles[MOTOR_LF_ADDR] && StepCyclesRema[MOTOR_LF_ADDR] != 0){
+        i++;
+        TIM_Cmd(MOTOR_LF_TIM, DISABLE);
+        DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
+        MOTOR_LF_TIM->EGR |= 0x01;
+	    MOTOR_LF_DMA_STREAM->NDTR = StepCyclesRema[MOTOR_LF_ADDR];
+	    DMA_ClearFlag(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_LF_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_LF_TIM, ENABLE);
+    }else{
+        i++;
+        TIM_Cmd(MOTOR_LF_TIM, DISABLE);
+        DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
+        MOTOR_LF_TIM->EGR |= 0x01;
+	    MOTOR_LF_DMA_STREAM->NDTR = STEPS_LOOP_MAXNUM;
+	    DMA_ClearFlag(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_LF_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_LF_TIM, ENABLE);
+    }
+    DMA_ClearITPendingBit(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_IT_TCIF);
+  }
+}
+
+void MOTOR_LR_TIM_DMA_IRQHandler(void){
+    static int i = 1;
+ if (DMA_GetITStatus(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_IT_TCIF)){
+    if((i >=  StepCycles[MOTOR_LR_ADDR] && StepCyclesRema[MOTOR_LR_ADDR] == 0) || i > StepCycles[MOTOR_LR_ADDR] ){
+            TIM_Cmd(MOTOR_LR_TIM, DISABLE);
+            DMA_Cmd(MOTOR_LR_DMA_STREAM, DISABLE);
+             i = 0;
+    }else if(i == StepCycles[MOTOR_LR_ADDR] && StepCyclesRema[MOTOR_LR_ADDR] != 0){
+        i++;
+        TIM_Cmd(MOTOR_LR_TIM, DISABLE);
+        DMA_Cmd(MOTOR_LR_DMA_STREAM, DISABLE);
+        MOTOR_LR_TIM->EGR |= 0x01;
+	    MOTOR_LR_DMA_STREAM->NDTR = StepCyclesRema[MOTOR_LR_ADDR];
+	    DMA_ClearFlag(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_LR_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_LR_TIM, ENABLE);
+    }else{
+        i++;
+        TIM_Cmd(MOTOR_LR_TIM, DISABLE);
+        DMA_Cmd(MOTOR_LR_DMA_STREAM, DISABLE);
+        MOTOR_LR_TIM->EGR |= 0x01;
+	    MOTOR_LR_DMA_STREAM->NDTR = STEPS_LOOP_MAXNUM;
+	    DMA_ClearFlag(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_LR_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_LR_TIM, ENABLE);
+    }
+    DMA_ClearITPendingBit(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_IT_TCIF);
+  }
+}
+
+
+void MOTOR_RF_TIM_DMA_IRQHandler(void){
+    static int i = 1;
+ if (DMA_GetITStatus(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_IT_TCIF)){
+    if((i >=  StepCycles[MOTOR_RF_ADDR] && StepCyclesRema[MOTOR_RF_ADDR] == 0) || i > StepCycles[MOTOR_RF_ADDR] ){
+            TIM_Cmd(MOTOR_RF_TIM, DISABLE);
+            DMA_Cmd(MOTOR_RF_DMA_STREAM, DISABLE);
+             i = 0;
+    }else if(i == StepCycles[MOTOR_RF_ADDR] && StepCyclesRema[MOTOR_RF_ADDR] != 0){
+        i++;
+        TIM_Cmd(MOTOR_RF_TIM, DISABLE);
+        DMA_Cmd(MOTOR_RF_DMA_STREAM, DISABLE);
+        MOTOR_RF_TIM->EGR |= 0x01;
+	    MOTOR_RF_DMA_STREAM->NDTR = StepCyclesRema[MOTOR_RF_ADDR];
+	    DMA_ClearFlag(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_RF_TIM, ENABLE);
+    }else{
+        i++;
+        TIM_Cmd(MOTOR_RF_TIM, DISABLE);
+        DMA_Cmd(MOTOR_RF_DMA_STREAM, DISABLE);
+        MOTOR_RF_TIM->EGR |= 0x01;
+	    MOTOR_RF_DMA_STREAM->NDTR = STEPS_LOOP_MAXNUM;
+	    DMA_ClearFlag(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_RF_TIM, ENABLE);
+    }
+    DMA_ClearITPendingBit(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_IT_TCIF);
+  }
+}
+
+
+void MOTOR_RR_TIM_DMA_IRQHandler(void){
+    static int i = 1;
+ if (DMA_GetITStatus(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_IT_TCIF)){
+    if((i >=  StepCycles[MOTOR_RR_ADDR] && StepCyclesRema[MOTOR_RR_ADDR] == 0) || i > StepCycles[MOTOR_RR_ADDR] ){
+            TIM_Cmd(MOTOR_RR_TIM, DISABLE);
+            DMA_Cmd(MOTOR_RR_DMA_STREAM, DISABLE);
+            i = 0;
+    }else if(i == StepCycles[MOTOR_RR_ADDR] && StepCyclesRema[MOTOR_RR_ADDR] != 0){
+        i++;
+        TIM_Cmd(MOTOR_RR_TIM, DISABLE);
+        DMA_Cmd(MOTOR_RR_DMA_STREAM, DISABLE);
+        MOTOR_RR_TIM->EGR |= 0x01;
+	    MOTOR_RR_DMA_STREAM->NDTR = StepCyclesRema[MOTOR_RR_ADDR];
+	    DMA_ClearFlag(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_RR_TIM, ENABLE);
+    }else{
+        i++;
+        TIM_Cmd(MOTOR_RR_TIM, DISABLE);
+        DMA_Cmd(MOTOR_RR_DMA_STREAM, DISABLE);
+        MOTOR_RR_TIM->EGR |= 0x01;
+	    MOTOR_RR_DMA_STREAM->NDTR = STEPS_LOOP_MAXNUM;
+	    DMA_ClearFlag(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_FLAG_TCIF);
+	    DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
+	    TIM_Cmd(MOTOR_RR_TIM, ENABLE);
+    }
+    DMA_ClearITPendingBit(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_IT_TCIF);
+  }
 }
 
 #endif //STEPPER_MOTOR_DRIVER
