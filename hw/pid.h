@@ -5,7 +5,7 @@
 // variable 变量
 typedef float PID_ParType;
 typedef int PID_ReVarType;
-typedef int PID_InVarType;
+typedef double PID_InVarType;
 
 struct _Structure_PIDCtrl{
     PID_ParType Par_KP;

@@ -92,7 +92,7 @@ PID_ReVarType run_Positional_PID(void* _pPID_slef, PID_InVarType ActualValue, PI
     pPID_slef->Error  = TargetValue - ActualValue;                //计算偏差
     pPID_slef->dError = pPID_slef->Error - pPID_slef->Last_Error;
 
-    // if(_abs(pPID_slef->Error) < 4) 
+    // if(_abs(pPID_slef->Error) < 0.2) 
     //     return pPID_slef->CtrllVar = 0;
 
     //积分分离

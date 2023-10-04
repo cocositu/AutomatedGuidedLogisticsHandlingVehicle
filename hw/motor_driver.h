@@ -64,6 +64,8 @@ void MotorUartCtrl(                                                             
 void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, 
     uint32_t Motor_vel,uint32_t Motor_acc, uint32_t Motor_clk, bool isGearShift, bool isEn);
 void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr);
+
+void stop_all_motor(void);
 #endif //STEPPER_MOTOR_DRIVER
 #endif //_MOTOR_DRIVER_H_
 
