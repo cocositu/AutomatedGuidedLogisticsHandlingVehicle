@@ -1,5 +1,8 @@
 #include "KinematicModel.h"
+#include "arm_math.h"
+#include "math.h"
 #include "sys.h"
+#include"stdio.h"
 double vel_weel[4];
 double pos_weel[4];
 
@@ -13,24 +16,28 @@ double pos_weel[4];
 **************************************************************************/
 void Kinematic_Analysis(float Vx,float Vy,float Vw)
 {
-	vel_weel[0]  = +Vx+Vy-Vw*(a_PARAMETER+b_PARAMETER);
-	vel_weel[1]  = +Vx-Vy-Vw*(a_PARAMETER+b_PARAMETER);
-	vel_weel[2]  = +Vx-Vy+Vw*(a_PARAMETER+b_PARAMETER);
-	vel_weel[3]  = +Vx+Vy+Vw*(a_PARAMETER+b_PARAMETER);
+	vel_weel[0]  = +Vx+Vy-Vw*(a_PARAMETER+b_PARAMETER);//LF
+	vel_weel[1]  = +Vx-Vy-Vw*(a_PARAMETER+b_PARAMETER);//LR
+	vel_weel[2]  = +Vx-Vy+Vw*(a_PARAMETER+b_PARAMETER);//RF
+	vel_weel[3]  = +Vx+Vy+Vw*(a_PARAMETER+b_PARAMETER);//RR
 }
 
 
-void Kinematic_Analysis_Pos(float x,
-							float Vx,float Vy,float Vw)
-{
+void Kinematic_Analysis_Pos(float Vx, float Vy, float Vw, float x, float xw){
+	double dx =0,dy =0,dw =0; 
+	double tmp;
+	tmp = sqrt(Vx*Vx + Vy*Vy);
+	dx = x * Vx/tmp;
+	dy = x * Vy/tmp;
+	dw = xw *_sign_f(Vw);
 	vel_weel[0]  = +Vx+Vy-Vw*(a_PARAMETER+b_PARAMETER);
 	vel_weel[1]  = +Vx-Vy-Vw*(a_PARAMETER+b_PARAMETER);
 	vel_weel[2]  = +Vx-Vy+Vw*(a_PARAMETER+b_PARAMETER);
 	vel_weel[3]  = +Vx+Vy+Vw*(a_PARAMETER+b_PARAMETER);
 
-	pos_weel[0] = x * _sign_f(vel_weel[0]);
-	pos_weel[1] = x * _sign_f(vel_weel[1]);
-	pos_weel[2] = x * _sign_f(vel_weel[2]);
-	pos_weel[3] = x * _sign_f(vel_weel[3]);
+	pos_weel[0] = +dx+dy-dw*(a_PARAMETER+b_PARAMETER);
+	pos_weel[1] = +dx-dy-dw*(a_PARAMETER+b_PARAMETER);
+	pos_weel[2] = +dx-dy+dw*(a_PARAMETER+b_PARAMETER);
+	pos_weel[3] = +dx+dy+dw*(a_PARAMETER+b_PARAMETER);
 }
 

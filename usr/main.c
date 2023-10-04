@@ -24,6 +24,8 @@
 #ifdef  BOTTOM_LEVEL
 #include"motor_driver.h"
 #include"hwt101.h"
+#include"KinematicModel.h"
+#include "pid.h"
 #endif //BOTTOM_LEVEL
 
 /*两层通用文件*/
@@ -127,11 +129,11 @@ static void task_QRcodeIdentify(void* pvParameters){
 
 #ifdef BOTTOM_LEVEL
 
-// int fputc(int ch, FILE *p) {
-// 	USART_SendData(USART6,(uint8_t)ch);
-// 	while(USART_GetFlagStatus(USART6,USART_FLAG_TXE)==RESET);
-//  return ch;
-// }
+int fputc(int ch, FILE *p) {
+	USART_SendData(USART6,(uint8_t)ch);
+	while(USART_GetFlagStatus(USART6,USART_FLAG_TXE)==RESET);
+ return ch;
+}
 
 Arr_pLedStruct LED = NULL;
 
@@ -141,7 +143,7 @@ static void task_Led(void* pvParameters);
 int main(void){
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	delay_init();
-	//uart6_init(9600);
+	uart6_init(9600);
 	LED = Create_Arr_LedStruct(3);
 	LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
 	LED[1]->SetEnLevel = SET_EN_LOW_LEVEL;
@@ -152,32 +154,50 @@ int main(void){
 	MOTOR_RF_TIM_Init();
 	MOTOR_RR_TIM_Init();
 
-	//StepMotorLFBuffer[0] =  0x500;
-	// StepMotorRRBuffer[STEPS_LOOP_MAXNUM] = 0xFFFF;
-	// StepMotorRFBuffer[STEPS_LOOP_MAXNUM] = 0xFFFF;
-	// StepMotorLFBuffer[STEPS_LOOP_MAXNUM] = 0xFFFF;
-	// StepMotorLRBuffer[STEPS_LOOP_MAXNUM] = 0xFFFF;
-	
-	//IMU_uart_init(9600);
+	IMU_uart_init(9600);
 	// MOTOR_LF_UART_Init(115200);
 	// MOTOR_LR_UART_Init(115200);
 	// MOTOR_RF_UART_Init(115200);
 	// MOTOR_RR_UART_Init(115200);
-	//MOTOR_LF_TIM->CCR1 = 500;
+	Arr_pStruct_Pos_PID tmp_pid =  create_PosPIDStructure(1);
+	((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
+	
+	delay_xms(3000);
+	IMU_UART_YawZeroOut();
+	delay_xms(3000);
 
-	delay_xms(5000); 
 	while (1){
-		MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, 800*3, False, True);
-		delay_xms(4000);
-		MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 800*3, False, True);
-		delay_xms(4000);
+		if(HWT101_Struct.GetITSta == 1) LED[0]->reverse(LED[0]);
+		double yaw = HWT101_Struct.YawAngle;
+		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);
+		printf("yaw=%.3f,dw = %d\r\n",yaw, tmp_dw);
+		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
+		Kinematic_Analysis_Pos(1, 0, -tmp_dw/200.0, 0, 0.2);
+		if(vel_weel[0] > 0)
+			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
+		else
+			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
+		if(vel_weel[1] > 0)
+			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
+		else
+			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
+		if(vel_weel[2] > 0)
+			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
+		else
+			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
+		if(vel_weel[3] > 0)
+			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
+		else
+			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
+		delay_xms(200);
 	}
 	
-	// MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, 800*2, False, True);
-	// MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, 800*2, False, True);
-	// MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, 800*2, False, True);
-	// MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 800*2, False, True);
+	// MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
+	// MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
+	// MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
+	// MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
 	// Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
+
 	/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t )task_Led,  		/* 任务入口函数 */
 			  (const char*    )"task_Led",			/* 任务名字 */
@@ -195,12 +215,23 @@ static void task_Led(void* pvParameters){
 	while(1){
 		TickType_t lasttick = xTaskGetTickCount();
 		LED[0]->reverse(LED[0]);
-		LED[1]->reverse(LED[1]);	
+		LED[1]->reverse(LED[1]);
+		// Kinematic_Analysis_Pos(1, 0, 0, 3, 0);
+		// if(vel_weel[0] > 0)
+		// 	MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
+		// else
+		// 	MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
+		
+		// MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*3), 0, (uint32_t)(800*3), False, False);
+		// MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*3), 0, (uint32_t)(800*3), False, False);
+		// MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*3), 0, (uint32_t)(800*3), False, False);
+		// Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
 		// MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
 		// MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
 		// MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
 		// MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
 		// sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+
 		xTaskDelayUntil(&lasttick, 1000);
 	}
 }   

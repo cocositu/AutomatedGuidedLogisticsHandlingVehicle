@@ -82,6 +82,11 @@ int _abs(int num){
     else return num;
 }
 
+float _abs_f(float num){
+    if (num < 0) return -num;
+    else return num;
+}
+
 
 int _sign(int num){
     if (num  < 0) return -1;

@@ -22,6 +22,9 @@ MotorUartBufferType *MotorLRUartBuffer = MotorUartBuffer[MOTOR_LR_ADDR];
 MotorUartBufferType *MotorRFUartBuffer = MotorUartBuffer[MOTOR_RF_ADDR];
 MotorUartBufferType *MotorRRUartBuffer = MotorUartBuffer[MOTOR_RR_ADDR];
 
+bool isENMotor[5]          = {0};
+uint32_t StepCycles[5]     = {0};
+uint32_t StepCyclesRema[5] = {0};
 
 void MOTOR_LF_TIM_Init(void){
 
@@ -690,28 +693,40 @@ void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr){
     uint32_t DMA_FLAG_TCIF = 0;
     TIM_TypeDef * TIMx = NULL; 
     if(Motor_addr ==  MOTOR_ALL_ADDR){
-        TIM_ARRPreloadConfig(MOTOR_LF_TIM, ENABLE);//ARPE使能
-        TIM_ARRPreloadConfig(MOTOR_LR_TIM, ENABLE);//ARPE使能
-        TIM_ARRPreloadConfig(MOTOR_RF_TIM, ENABLE);//ARPE使能
-        TIM_ARRPreloadConfig(MOTOR_RR_TIM, ENABLE);//ARPE使能
-  	    MOTOR_LF_TIM->EGR |= 0x01;
-        MOTOR_LR_TIM->EGR |= 0x01;
-        MOTOR_RF_TIM->EGR |= 0x01;
-        MOTOR_RR_TIM->EGR |= 0x01;
-        DMA_ClearFlag(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_FLAG_TCIF);	    
-        DMA_ClearFlag(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_FLAG_TCIF);     	    
-        DMA_ClearFlag(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_FLAG_TCIF);        
-        DMA_ClearFlag(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_FLAG_TCIF);
-        DMA_Cmd(MOTOR_LF_DMA_STREAM, ENABLE);
-        DMA_Cmd(MOTOR_LR_DMA_STREAM, ENABLE);
-	    DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
-        DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
-        TIM_Cmd(MOTOR_LF_TIM, ENABLE);
-        TIM_Cmd(MOTOR_LR_TIM, ENABLE);
-	    TIM_Cmd(MOTOR_RR_TIM, ENABLE);
-        TIM_Cmd(MOTOR_RF_TIM, ENABLE); 
-        TIM_CtrlPWMOutputs(TIM1, ENABLE);
-        TIM_CtrlPWMOutputs(TIM8, ENABLE);
+        if(isENMotor[MOTOR_LF_ADDR]){
+            DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
+            TIM_ARRPreloadConfig(MOTOR_LF_TIM, ENABLE);//ARPE使能
+            MOTOR_LF_TIM->EGR |= 0x01;
+            DMA_ClearFlag(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_FLAG_TCIF);
+            DMA_Cmd(MOTOR_LF_DMA_STREAM, ENABLE);
+            TIM_Cmd(MOTOR_LF_TIM, ENABLE);
+        }
+        if(isENMotor[MOTOR_LR_ADDR]){
+            DMA_Cmd(MOTOR_LR_DMA_STREAM, DISABLE);
+            TIM_ARRPreloadConfig(MOTOR_LR_TIM, ENABLE);//ARPE使能
+            MOTOR_LR_TIM->EGR |= 0x01;
+            DMA_ClearFlag(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_FLAG_TCIF);
+            DMA_Cmd(MOTOR_LR_DMA_STREAM, ENABLE);
+            TIM_Cmd(MOTOR_LR_TIM, ENABLE);
+            TIM_CtrlPWMOutputs(TIM1, ENABLE); 
+        }
+        if(isENMotor[MOTOR_RF_ADDR]){
+            DMA_Cmd(MOTOR_RF_DMA_STREAM, DISABLE);
+            TIM_ARRPreloadConfig(MOTOR_RF_TIM, ENABLE);//ARPE使能
+            MOTOR_RF_TIM->EGR |= 0x01;
+            DMA_ClearFlag(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_FLAG_TCIF);
+            DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
+            TIM_Cmd(MOTOR_RR_TIM, ENABLE);
+        }
+        if(isENMotor[MOTOR_RR_ADDR]){
+            DMA_Cmd(MOTOR_RR_DMA_STREAM, DISABLE);
+            TIM_ARRPreloadConfig(MOTOR_RR_TIM, ENABLE);//ARPE使能      
+            MOTOR_RR_TIM->EGR |= 0x01;
+            DMA_ClearFlag(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_FLAG_TCIF);
+            DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
+            TIM_Cmd(MOTOR_RF_TIM, ENABLE); 
+            TIM_CtrlPWMOutputs(TIM8, ENABLE);
+        }
         return;
     }
     switch (Motor_addr){
@@ -736,12 +751,16 @@ void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr){
         TIMx          = MOTOR_RR_TIM;
         break;
     }
-    TIM_ARRPreloadConfig(TIMx, ENABLE);//ARPE使能
-  	TIMx->EGR |= 0x01;
-    DMA_ClearFlag(DMA_STREAMx, DMA_FLAG_TCIF);
-	DMA_Cmd(DMA_STREAMx, ENABLE);
-	TIM_Cmd(TIMx, ENABLE);
-    if(TIMx == TIM1 || TIMx == TIM8) TIM_CtrlPWMOutputs(TIMx, ENABLE);
+
+    if(isENMotor[Motor_addr]){
+        DMA_Cmd(DMA_STREAMx, DISABLE);
+        TIM_ARRPreloadConfig(TIMx, ENABLE);//ARPE使能
+  	    TIMx->EGR |= 0x01;
+        DMA_ClearFlag(DMA_STREAMx, DMA_FLAG_TCIF);
+	    DMA_Cmd(DMA_STREAMx, ENABLE);
+	    TIM_Cmd(TIMx, ENABLE);
+        if(TIMx == TIM1 || TIMx == TIM8) TIM_CtrlPWMOutputs(TIMx, ENABLE);
+    }
 }
 
 void Fun_DataLenth_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr, uint32_t translenth){
@@ -763,15 +782,26 @@ void Fun_DataLenth_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr, uint32_t translent
     DMA_STREAMx->NDTR = translenth;
 }
 
-uint32_t StepCycles[5]     = {0};
-uint32_t StepCyclesRema[5] = {0};
+// bool isENMotor[5]          = {0};
+// uint32_t StepCycles[5]     = {0};
+// uint32_t StepCyclesRema[5] = {0};
+
 
 void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, 
     uint32_t Motor_vel,uint32_t Motor_acc, uint32_t Motor_clk, bool isGearShift, bool isEn){ 
+   
+    if(Motor_vel == 0 || Motor_clk == 0){
+        isENMotor[Motor_addr] = 0;
+        return;
+    }else{
+        isENMotor[Motor_addr] = 1;
+    }
+
     if(Motor_vel > 2400) Motor_vel = 2400;
+
     Fun_Dir_StepMotor(Motor_addr, Motor_dir);
 
-    if(isGearShift == False) 
+    if(isGearShift == False && Motor_vel != 0) 
         StepMotorBuffer[Motor_addr-1][0] = (StepBufferType)(100000 / Motor_vel);
 
     if(Motor_clk < STEPS_LOOP_MAXNUM) Fun_DataLenth_DMA_Motor(Motor_addr, Motor_clk);
@@ -782,16 +812,16 @@ void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir,
     StepCycles[Motor_addr]     = Motor_clk / STEPS_LOOP_MAXNUM;
     StepCyclesRema[Motor_addr] = Motor_clk % STEPS_LOOP_MAXNUM;  
 
-    if(isEn)    Fun_En_DMA_Motor(Motor_addr);    
+    if(isEn && isENMotor[Motor_addr] == 1)    Fun_En_DMA_Motor(Motor_addr);    
 }
 
 void MOTOR_LF_TIM_DMA_IRQHandler(void){
-    static int i = 1;
+    static int i = 0;
  if (DMA_GetITStatus(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_IT_TCIF)){
     if((i >=  StepCycles[MOTOR_LF_ADDR] && StepCyclesRema[MOTOR_LF_ADDR] == 0) || i > StepCycles[MOTOR_LF_ADDR] ){
             TIM_Cmd(MOTOR_LF_TIM, DISABLE);
             DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
-             i = 0;
+            i = 0;
     }else if(i == StepCycles[MOTOR_LF_ADDR] && StepCyclesRema[MOTOR_LF_ADDR] != 0){
         i++;
         TIM_Cmd(MOTOR_LF_TIM, DISABLE);
@@ -816,7 +846,7 @@ void MOTOR_LF_TIM_DMA_IRQHandler(void){
 }
 
 void MOTOR_LR_TIM_DMA_IRQHandler(void){
-    static int i = 1;
+    static int i = 0;
  if (DMA_GetITStatus(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_IT_TCIF)){
     if((i >=  StepCycles[MOTOR_LR_ADDR] && StepCyclesRema[MOTOR_LR_ADDR] == 0) || i > StepCycles[MOTOR_LR_ADDR] ){
             TIM_Cmd(MOTOR_LR_TIM, DISABLE);
@@ -847,7 +877,7 @@ void MOTOR_LR_TIM_DMA_IRQHandler(void){
 
 
 void MOTOR_RF_TIM_DMA_IRQHandler(void){
-    static int i = 1;
+    static int i = 0;
  if (DMA_GetITStatus(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_IT_TCIF)){
     if((i >=  StepCycles[MOTOR_RF_ADDR] && StepCyclesRema[MOTOR_RF_ADDR] == 0) || i > StepCycles[MOTOR_RF_ADDR] ){
             TIM_Cmd(MOTOR_RF_TIM, DISABLE);
@@ -878,7 +908,7 @@ void MOTOR_RF_TIM_DMA_IRQHandler(void){
 
 
 void MOTOR_RR_TIM_DMA_IRQHandler(void){
-    static int i = 1;
+    static int i = 0;
  if (DMA_GetITStatus(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_IT_TCIF)){
     if((i >=  StepCycles[MOTOR_RR_ADDR] && StepCyclesRema[MOTOR_RR_ADDR] == 0) || i > StepCycles[MOTOR_RR_ADDR] ){
             TIM_Cmd(MOTOR_RR_TIM, DISABLE);

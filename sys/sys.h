@@ -17,6 +17,7 @@ void delay_ms(uint16_t nms);
 void delay_xms(uint32_t nms);
 
 int _abs(int num);
+float _abs_f(float num);
 int _sign(int num);
 int _sign_f(float num);
 
