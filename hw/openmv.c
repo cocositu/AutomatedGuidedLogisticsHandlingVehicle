@@ -1,0 +1,81 @@
+#include"openmv.h"
+#include "string.h"
+
+#ifdef TOP_LEVEL
+
+OV_MSG_Sturct OV_Struct = {0};
+
+void ToOpenMV_uart_init(uint32_t bound){
+ 
+	ToOPENMV_UART_RX_FUN_GPIO_CLK(ENABLE);
+	ToOPENMV_UART_TX_FUN_GPIO_CLK(ENABLE);
+	GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_PinAFConfig(ToOPENMV_UART_RX_GPIO,ToOPENMV_UART_RX_GPIO_PINSOURCE, ToOPENMV_UART_GPIO_AF_UART); 
+	GPIO_PinAFConfig(ToOPENMV_UART_TX_GPIO,ToOPENMV_UART_TX_GPIO_PINSOURCE, ToOPENMV_UART_GPIO_AF_UART);
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; 
+	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Pin   = ToOPENMV_UART_RX_GPIO_PIN; 
+	GPIO_Init(ToOPENMV_UART_RX_GPIO,&GPIO_InitStructure); 
+	GPIO_InitStructure.GPIO_Pin   = ToOPENMV_UART_TX_GPIO_PIN; 
+	GPIO_Init(ToOPENMV_UART_TX_GPIO,&GPIO_InitStructure); 
+	
+	ToOPENMV_UART_FUN_UART_CLK(ENABLE);
+	USART_InitTypeDef USART_InitStructure;
+	USART_InitStructure.USART_BaudRate   = bound;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits   = USART_StopBits_1;
+	USART_InitStructure.USART_Parity     = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode       = USART_Mode_Rx | USART_Mode_Tx;	
+    USART_Init(ToOPENMV_UART, &USART_InitStructure); 
+
+    USART_Cmd(ToOPENMV_UART, ENABLE);
+}
+
+void OV_SendData(char DataByte){
+	USART_SendData(ToOPENMV_UART, DataByte);
+    while(USART_GetFlagStatus(ToOPENMV_UART, USART_FLAG_TC) == 0);					
+	USART_ClearFlag(ToOPENMV_UART, USART_FLAG_TC);		
+}											
+
+void ToOPENMV_UART_IRQHandler(void){
+	if(USART_GetITStatus(QRCODE_UART, USART_IT_RXNE) != RESET){
+		USART_ClearITPendingBit(QRCODE_UART,USART_IT_RXNE);
+		OV_Struct.RxBuff[OV_Struct.RxCnt++] = ToOPENMV_UART->DR;
+		if ((OV_Struct.RxBuff[0] == '[')&&(OV_Struct.RxBuff[9] == ']'))
+		{
+			if(OV_Struct.RxBuff[1] == OV_Struct.TaskNum)	//任务匹配（可不要）相等前提是先给了OpenMV数据
+			{
+				if((OV_Struct.TaskNum == OV_RED_COLOR)||\
+				(OV_Struct.TaskNum == OV_GREEN_COLOR)||\
+				(OV_Struct.TaskNum == OV_BLUE_COLOR))
+				{
+					OV_Struct.TaskState = OV_Struct.RxBuff[2];	//2~7数据相同 判断是否抓取物块 'y' 如果是y则开始抓取
+				}
+				if(OV_Struct.TaskNum == OV_LOCATE_CORRECT)
+				{
+					OV_Struct.Lo_X = (OV_Struct.RxBuff[2]-'0')*100 + (OV_Struct.RxBuff[3]-'0')*10 + (OV_Struct.RxBuff[4]-'0');
+					OV_Struct.Lo_Y = (OV_Struct.RxBuff[5]-'0')*100 + (OV_Struct.RxBuff[6]-'0')*10 + (OV_Struct.RxBuff[7]-'0');
+				}
+				if((OV_Struct.TaskNum == OV_RED_CIRCL)||\
+				(OV_Struct.TaskNum == OV_GREEN_CIRCL)||\
+				(OV_Struct.TaskNum == OV_BLUE_CIRCL))
+				{
+					OV_Struct.Lo_X = (OV_Struct.RxBuff[2]-'0')*100 + (OV_Struct.RxBuff[3]-'0')*10 + (OV_Struct.RxBuff[4]-'0');
+					OV_Struct.Lo_Y = (OV_Struct.RxBuff[5]-'0')*100 + (OV_Struct.RxBuff[6]-'0')*10 + (OV_Struct.RxBuff[7]-'0');
+					//后期加颜色处理数据
+				}
+			}
+		}
+		if (OV_Struct.RxCnt == 10)
+		{
+			OV_Struct.RxCnt = 0;
+			memset(OV_Struct.RxBuff,0,sizeof(OV_Struct.RxBuff));
+		}
+  	} 
+}
+
+
+#endif

@@ -9,10 +9,10 @@
 /****************************修改区域_begin*******************************/
 #ifdef STM32F4xx
 #ifdef  TOP_LEVEL
-    GPIO_TypeDef *LED_GPIO[] = {GPIOC, GPIOC};
-    uint16_t LED_GPIO_PIN[]  = {GPIO_Pin_9, GPIO_Pin_8};
-    uint32_t LED_GPIO_CLK[]  = {RCC_AHB1Periph_GPIOC, RCC_AHB1Periph_GPIOC};
-    void(*LED_FUN_SET_CLK[])(uint32_t, FunctionalState) = {RCC_AHB1PeriphClockCmd, RCC_AHB1PeriphClockCmd};
+    GPIO_TypeDef *LED_GPIO[] = {GPIOC, GPIOC, GPIOC};
+    uint16_t LED_GPIO_PIN[]  = {GPIO_Pin_9, GPIO_Pin_8, GPIO_Pin_7};
+    uint32_t LED_GPIO_CLK[]  = {RCC_AHB1Periph_GPIOC, RCC_AHB1Periph_GPIOC, RCC_AHB1Periph_GPIOC};
+    void(*LED_FUN_SET_CLK[])(uint32_t, FunctionalState) = {RCC_AHB1PeriphClockCmd, RCC_AHB1PeriphClockCmd, RCC_AHB1PeriphClockCmd};
 #endif //TOP_LEVEL
 #ifdef  BOTTOM_LEVEL
     GPIO_TypeDef *LED_GPIO[] = {GPIOE, GPIOE, GPIOE};

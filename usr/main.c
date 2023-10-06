@@ -18,6 +18,7 @@
 #include"QRcode.h"
 #include "lcd_init.h"
 #include "lcd.h"
+#include"manipulator.h"
 #endif //TOP_LEVEL
 
 /*底盘代码*/
@@ -34,7 +35,7 @@
 // #include"comm_uart.h"
 #include"uart.h"
 
-// #define UART6_PRINTF
+
 // #include"uart.h"
 // float EcgDiscrList[28];
 // float stdResultDiffECG;
@@ -49,17 +50,7 @@ static void task_Led(void* pvParameters);
 /* QRCode任务 */ 
 static void task_QRcodeIdentify(void* pvParameters);  
 
-int fputc(int ch, FILE *p) {
-	#ifdef UART1_PRINTF
- 		USART_SendData(USART1,(uint8_t)ch);
- 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE)==RESET);
- 	#endif
-	#ifdef UART6_PRINTF
- 		USART_SendData(USART6,(uint8_t)ch);
- 		while(USART_GetFlagStatus(USART6,USART_FLAG_TXE)==RESET);
- 	#endif
- return ch;
-}
+
 
 int main(void){
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
@@ -67,14 +58,22 @@ int main(void){
 	LCD_Init();//LCD初始化
 	LCD_Fill(0,0,LCD_W,LCD_H,BLACK);
 	QR_uart_init(115200);
-	
+	MAN_SEP_UART_Init(115200);
 	LED = Create_Arr_LedStruct(2);
 	LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
 	LED[1]->SetEnLevel = SET_EN_LOW_LEVEL;
 	
 	LCD_ShowString(0, 0, "WAITING...", WHITE, BLACK, 24,0);
-	delay_xms(1000);
+	delay_xms(5000);
 	LCD_Fill(0,0,LCD_W,LCD_H,BLACK);
+
+	/**
+	 * 
+	 */
+	ManStepUartCtrl(0,50, 40, 4000, 1);
+	
+	
+	
 		/* 创建app_task1任务 */
 	xTaskCreate((TaskFunction_t )task_Led,  		/* 任务入口函数 */
 			  (const char*    )"task_Led",			/* 任务名字 */
@@ -99,15 +98,10 @@ static void task_Led(void* pvParameters){
 	while(1){
 		LED[0]->reverse(LED[0]);
 		LED[1]->reverse(LED[1]);
-		#ifdef UART1_PRINTF
-			printf("Hello World!\r\n");
-		#endif
-		#ifdef UART6_PRINTF
-			printf("Goodbye World!\r\n");
-		#endif
-		vTaskDelay(300);
+		vTaskDelay(500);
 	}
 }   
+
 static void task_QRcodeIdentify(void* pvParameters){
 	while (1){
 		if(QRCode.GetITSta == 1){
@@ -144,6 +138,10 @@ int main(void){
 		// MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD,800, 0, 800*10, False, True);
 		// MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 800*10, False, True);
 	
+	while (1)
+	{
+		/* code */
+	}
 	
 	/* 创建taskStart任务 */
 	xTaskCreate((TaskFunction_t )taskStart,  	/* 任务入口函数 */

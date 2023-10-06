@@ -3,8 +3,8 @@
 
 #define STM32_STD_DRVER 
 #define STEPPER_MOTOR_DRIVER
-//#define TOP_LEVEL
-#define BOTTOM_LEVEL
+#define TOP_LEVEL
+//#define BOTTOM_LEVEL
 
 #ifdef  STM32_STD_DRVER
 
@@ -20,7 +20,10 @@
 #define False   0
 
 typedef unsigned char uint8_t;
-typedef uint8_t bool;
+// typedef uint8_t bool;
+typedef enum {
+	false = 0, true = 1
+} bool;
 
 #ifdef TOP_LEVEL
 
@@ -41,39 +44,99 @@ typedef uint8_t bool;
 #define QRCODE_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(QRCODE_TX_GPIO_CLK, NewState)
 #define QRCODE_IRQHandler(x)             UART5_IRQHandler(x)
 
-#define MOTOR_RR_UART_UART                      USART1
-#define MOTOR_RR_UART_GPIO_AF_UART             GPIO_AF_USART1
-#define MOTOR_RR_UART_UART_IRQn                 USART1_IRQn
-#define MOTOR_RR_UART_UART_CLK                  RCC_APB2Periph_USART1
-#define MOTOR_RR_UART_RX_GPIO                   GPIOB
-#define MOTOR_RR_UART_TX_GPIO                   GPIOB
-#define MOTOR_RR_UART_RX_GPIO_PIN               GPIO_Pin_7
-#define MOTOR_RR_UART_TX_GPIO_PIN               GPIO_Pin_6
-#define MOTOR_RR_UART_RX_GPIO_PINSOURCE         GPIO_PinSource7
-#define MOTOR_RR_UART_TX_GPIO_PINSOURCE         GPIO_PinSource6
-#define MOTOR_RR_UART_RX_GPIO_CLK               RCC_AHB1Periph_GPIOB
-#define MOTOR_RR_UART_TX_GPIO_CLK               RCC_AHB1Periph_GPIOB
-#define MOTOR_RR_UART_FUN_UART_CLK(NewState)    RCC_APB2PeriphClockCmd(MOTOR_RR_UART_UART_CLK, NewState)
-#define MOTOR_RR_UART_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MOTOR_RR_UART_RX_GPIO_CLK, NewState)
-#define MOTOR_RR_UART_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MOTOR_RR_UART_TX_GPIO_CLK, NewState)
-#define MOTOR_RR_UART_IRQHandler(x)             USART1_IRQHandler(x)
+// #define COMM_UART                      USART1
+// #define COMM_GPIO_AF_UART              GPIO_AF_USART1
+// #define COMM_UART_IRQn                 USART1_IRQn
+// #define COMM_UART_CLK                  RCC_APB2Periph_USART1
+// #define COMM_RX_GPIO                   GPIOB
+// #define COMM_TX_GPIO                   GPIOB
+// #define COMM_RX_GPIO_PIN               GPIO_Pin_7
+// #define COMM_TX_GPIO_PIN               GPIO_Pin_6
+// #define COMM_RX_GPIO_PINSOURCE         GPIO_PinSource7
+// #define COMM_TX_GPIO_PINSOURCE         GPIO_PinSource6
+// #define COMM_RX_GPIO_CLK               RCC_AHB1Periph_GPIOB
+// #define COMM_TX_GPIO_CLK               RCC_AHB1Periph_GPIOB
+// #define COMM_FUN_UART_CLK(NewState)    RCC_APB2PeriphClockCmd(COMM_UART_CLK, NewState)
+// #define COMM_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(COMM_RX_GPIO_CLK, NewState)
+// #define COMM_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(COMM_TX_GPIO_CLK, NewState)
+// #define COMM_IRQHandler(x)             USART1_IRQHandler(x)
 
-#define COMM_UART                      USART6
-#define COMM_GPIO_AF_UART              GPIO_AF_USART6
-#define COMM_UART_IRQn                 USART6_IRQn
-#define COMM_UART_CLK                  RCC_APB2Periph_USART6
-#define COMM_RX_GPIO                   GPIOC
-#define COMM_TX_GPIO                   GPIOC
-#define COMM_RX_GPIO_PIN               GPIO_Pin_7
-#define COMM_TX_GPIO_PIN               GPIO_Pin_6
-#define COMM_RX_GPIO_PINSOURCE         GPIO_PinSource7
-#define COMM_TX_GPIO_PINSOURCE         GPIO_PinSource6
-#define COMM_RX_GPIO_CLK               RCC_AHB1Periph_GPIOC
-#define COMM_TX_GPIO_CLK               RCC_AHB1Periph_GPIOC
-#define COMM_FUN_UART_CLK(NewState)    RCC_APB2PeriphClockCmd(COMM_UART_CLK, NewState)
-#define COMM_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(COMM_RX_GPIO_CLK, NewState)
-#define COMM_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(COMM_TX_GPIO_CLK, NewState)
-#define COMM_IRQHandler(x)             USART6_IRQHandler(x)
+#define MAN_SEP_UART                           USART6
+#define MAN_SEP_UART_GPIO_AF_UART              GPIO_AF_USART6
+#define MAN_SEP_UART_UART_CLK                  RCC_APB2Periph_USART6
+#define MAN_SEP_UART_RX_GPIO                   GPIOG
+#define MAN_SEP_UART_TX_GPIO                   GPIOG
+#define MAN_SEP_UART_RX_GPIO_PIN               GPIO_Pin_9
+#define MAN_SEP_UART_TX_GPIO_PIN               GPIO_Pin_14
+#define MAN_SEP_UART_RX_GPIO_PINSOURCE         GPIO_PinSource9
+#define MAN_SEP_UART_TX_GPIO_PINSOURCE         GPIO_PinSource14
+#define MAN_SEP_UART_RX_GPIO_CLK               RCC_AHB1Periph_GPIOG
+#define MAN_SEP_UART_TX_GPIO_CLK               RCC_AHB1Periph_GPIOG
+#define MAN_SEP_UART_FUN_UART_CLK(NewState)    RCC_APB2PeriphClockCmd(MAN_SEP_UART_UART_CLK, NewState)
+#define MAN_SEP_UART_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MAN_SEP_UART_RX_GPIO_CLK, NewState)
+#define MAN_SEP_UART_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MAN_SEP_UART_TX_GPIO_CLK, NewState)
+#define MAN_SEP_UART_DMA                       DMA2
+#define MAN_SEP_UART_DMA_STREAM                DMA2_Stream6
+#define MAN_SEP_UART_DMA_FLAG_TCIF             DMA_FLAG_TCIF6
+#define MAN_SEP_UART_DMA_CHANNEL               DMA_Channel_5
+#define MAN_SEP_UART_SEND_ADRESS               USART6->DR
+#define MAN_SEP_UART_DMA_CLK                   RCC_AHB1Periph_DMA2                            
+#define MAN_SEP_UART_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(MAN_SEP_UART_DMA_CLK , NewState)
+
+#define MAN_SERVO_UART                           USART2
+#define MAN_SERVO_UART_GPIO_AF_UART              GPIO_AF_USART2
+#define MAN_SERVO_UART_UART_CLK                  RCC_APB1Periph_USART2
+#define MAN_SERVO_UART_RX_GPIO                   GPIOD
+#define MAN_SERVO_UART_TX_GPIO                   GPIOD
+#define MAN_SERVO_UART_RX_GPIO_PIN               GPIO_Pin_6
+#define MAN_SERVO_UART_TX_GPIO_PIN               GPIO_Pin_5
+#define MAN_SERVO_UART_RX_GPIO_PINSOURCE         GPIO_PinSource6
+#define MAN_SERVO_UART_TX_GPIO_PINSOURCE         GPIO_PinSource5
+#define MAN_SERVO_UART_RX_GPIO_CLK               RCC_AHB1Periph_GPIOD
+#define MAN_SERVO_UART_TX_GPIO_CLK               RCC_AHB1Periph_GPIOD
+#define MAN_SERVO_UART_FUN_UART_CLK(NewState)    RCC_APB1PeriphClockCmd(MAN_SERVO_UART_UART_CLK, NewState)
+#define MAN_SERVO_UART_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MAN_SERVO_UART_RX_GPIO_CLK, NewState)
+#define MAN_SERVO_UART_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(MAN_SERVO_UART_TX_GPIO_CLK, NewState)
+#define MAN_SERVO_UART_DMA                       DMA1
+#define MAN_SERVO_UART_DMA_STREAM                DMA1_Stream6
+#define MAN_SERVO_UART_DMA_FLAG_TCIF             DMA_FLAG_TCIF6
+#define MAN_SERVO_UART_DMA_CHANNEL               DMA_Channel_4
+#define MAN_SERVO_UART_SEND_ADRESS               USART2->DR
+#define MAN_SERVO_UART_DMA_CLK                   RCC_AHB1Periph_DMA1                             
+#define MAN_SERVO_UART_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(MAN_SERVO_UART_DMA_CLK , NewState)
+
+#define ToOPENMV_UART                           UART4
+#define ToOPENMV_UART_IRQn                      UART4_IRQn
+#define ToOPENMV_UART_IRQHandler(x)             UART4_IRQHandler(x)
+#define ToOPENMV_UART_GPIO_AF_UART              GPIO_AF_UART4
+#define ToOPENMV_UART_UART_CLK                  RCC_APB1Periph_UART4
+#define ToOPENMV_UART_RX_GPIO                   GPIOC
+#define ToOPENMV_UART_TX_GPIO                   GPIOC
+#define ToOPENMV_UART_RX_GPIO_PIN               GPIO_Pin_11
+#define ToOPENMV_UART_TX_GPIO_PIN               GPIO_Pin_10
+#define ToOPENMV_UART_RX_GPIO_PINSOURCE         GPIO_PinSource11
+#define ToOPENMV_UART_TX_GPIO_PINSOURCE         GPIO_PinSource10
+#define ToOPENMV_UART_RX_GPIO_CLK               RCC_AHB1Periph_GPIOC
+#define ToOPENMV_UART_TX_GPIO_CLK               RCC_AHB1Periph_GPIOC
+#define ToOPENMV_UART_FUN_UART_CLK(NewState)    RCC_APB1PeriphClockCmd(ToOPENMV_UART_UART_CLK, NewState)
+#define ToOPENMV_UART_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(ToOPENMV_UART_RX_GPIO_CLK, NewState)
+#define ToOPENMV_UART_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_GPIO_CLK, NewState)
+#define ToOPENMV_UART_RX_DMA                       DMA1
+#define ToOPENMV_UART_RX_DMA_STREAM                DMA1_Stream2
+#define ToOPENMV_UART_DMA_IRQn                     DMA1_Stream2_IRQn
+#define ToOPENMV_UART_RX_DMA_IRQHandler(x)         DMA1_Stream2_IRQHandler(x)
+#define ToOPENMV_UART_RX_DMA_FLAG_TCIF             DMA_FLAG_TCIF2
+#define ToOPENMV_UART_RX_DMA_CHANNEL               DMA_Channel_4
+#define ToOPENMV_UART_RES_ADRESS                   UART4->DR
+#define ToOPENMV_UART_RX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
+#define ToOPENMV_UART_RX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_RX_DMA_CLK , NewState)
+#define ToOPENMV_UART_TX_DMA                       DMA1
+#define ToOPENMV_UART_TX_DMA_STREAM                DMA1_Stream4
+#define ToOPENMV_UART_TX_DMA_CHANNEL               DMA_Channel_4
+#define ToOPENMV_UART_SEND_ADRESS                  UART4->DR
+#define ToOPENMV_UART_TX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
+#define ToOPENMV_UART_TX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_DMA_CLK , NewState)
+
 
 #endif //TOP_LEVEL
 
@@ -219,7 +282,6 @@ typedef uint8_t bool;
 #define IMU_FUN_UART_CLK(NewState)          RCC_APB1PeriphClockCmd(IMU_UART_CLK, NewState)
 #define IMU_RX_FUN_GPIO_CLK(NewState)       RCC_AHB1PeriphClockCmd(IMU_RX_GPIO_CLK, NewState)
 #define IMU_TX_FUN_GPIO_CLK(NewState)       RCC_AHB1PeriphClockCmd(IMU_TX_GPIO_CLK, NewState)
-#define IMU_IRQHandler(x)                   UART4_IRQHandler(x)
 #define IMU_UART_DMA                        DMA1
 #define IMU_UART_DMA_STREAM                 DMA1_Stream2
 #define IMU_UART_DMA_IRQn                   DMA1_Stream2_IRQn
