@@ -1,4 +1,5 @@
 #include"bottom_task.h"
+#include"string.h"
 #ifdef BOTTOM_LEVEL
 
 Arr_pLedStruct LED = NULL;
@@ -11,31 +12,39 @@ void bsp_init(void){
 	MOTOR_LR_TIM_Init();
 	MOTOR_RF_TIM_Init();
 	MOTOR_RR_TIM_Init();
+	
     // MOTOR_LF_UART_Init(115200);
 	// MOTOR_LR_UART_Init(115200);
 	// MOTOR_RF_UART_Init(115200);
 	// MOTOR_RR_UART_Init(115200);
     IMU_uart_init(9600);
-
+	CarBottomComUartInit(9600);
+	
     tmp_pid =  create_PosPIDStructure(1);
 	LED = Create_Arr_LedStruct(3);
-
-	delay_xms(1000);
 
     LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
 	LED[1]->SetEnLevel = SET_EN_LOW_LEVEL;
 	LED[2]->SetEnLevel = SET_EN_LOW_LEVEL;
 	IMU_UART_YawZeroOut();
 	
-	delay_xms(3000);
+	delay_xms(1000);
 }
 void taskStart(void* pvParameters){
-    taskMoveDriveOut_start();
+    // taskMoveDriveOut_start();
     //taskMoveStaAreaToQRArea_start();
-
+	
+	while (BottomData.TaskState != StartTask_Sta){
+		vTaskDelay(200);
+		LED[0]->reverse(LED[0]);
+	}
+	
     vTaskDelete(taskStart_handle);
     taskEXIT_CRITICAL();
 }   
+
+
+
 
 
 void taskMoveDriveOut_start(void){
@@ -111,6 +120,8 @@ void taskMvBetweenColorCir(void* pvParameters){
 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
 		vTaskDelay(50);
 	}
+
+	BottomReturnData(Lo_zero_QRcode, FinishTask_Sta);
 	stop_all_motor();
 	vTaskDelay(1500);
 	loop_i = 12;

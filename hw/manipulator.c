@@ -6,7 +6,7 @@
 char MAN_SEP_MSG_Buff[MAN_SEP_MSG_LEN]      = {0};
 char MAN_SERVO_MSG_Buff[MAN_SERVO_MSG_LEN]  = {0};
 
-void MAN_SEP_UART_Init(uint32_t bound){
+void MAN_STEP_UART_Init(uint32_t bound){
 
 	MAN_SEP_UART_RX_FUN_GPIO_CLK(ENABLE);
 	MAN_SEP_UART_TX_FUN_GPIO_CLK(ENABLE);

@@ -17,7 +17,7 @@
 #include "led.h"
 #include "pid.h"
 #include "sys.h"
-
+#include "CarTaskConfig.h"
 
 extern Arr_pLedStruct LED;
 extern Arr_pStruct_Pos_PID tmp_pid; 

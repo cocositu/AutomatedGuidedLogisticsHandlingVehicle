@@ -8,24 +8,25 @@
 #define STEPS_LOOP_MAXNUM           400
 #define STEPS_UART_BUFFER_LENTH     13   
 
-typedef enum{
+typedef enum _MOTOR_UART_ADDR_ENUM{
     MOTOR_ALL_ADDR = 0x00,
     MOTOR_LF_ADDR = 0x01,
     MOTOR_LR_ADDR = 0x02,
     MOTOR_RR_ADDR = 0x03,
     MOTOR_RF_ADDR = 0x04,
 }MOTOR_UART_ADDR_ENUM;
-typedef enum{
+
+typedef enum _ABS_OR_REL_FLAG{
     REL_FLAG = 0x00,
     ABS_FLAG = 0x01,
 }ABS_OR_REL_FLAG;
 
-typedef enum{
+typedef enum _MOTOR_UART_SEND_ENUM{
     MOTOR_UART_SEND_DISEN = 0x00,
     MOTOR_UART_SEND_EN    = 0x01,
 } MOTOR_UART_SEND_ENUM;
 
-typedef enum{
+typedef enum _MOTOR_DIR_ENUM{
     MOTOR_REVERSE   = 0x00,
     MOTOR_FORWARD   = 0x01,
 } MOTOR_DIR_ENUM;

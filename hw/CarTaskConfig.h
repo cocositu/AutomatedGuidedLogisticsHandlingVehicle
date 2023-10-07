@@ -4,6 +4,7 @@
 #include "config.h"
 #include "sys.h"
 
+#define CARTASK_MSG_LEN 10
 /*
 通信采用 交互模式
 发送任务之后    有任务接受ACK和任务完成ACK
@@ -15,13 +16,18 @@
 0：帧头 0x66
 1：任务号
 2：任务状态 顶板 0x11开始任务  底板 0x22接收任务  0x33完成任务
-3：0x00  ~  0xFF
-4：0x00  ~  0xFF
-5：无效
-6：无效
-7：帧尾 0x88
-
+3：0x00  ~  0xFF        //二维码 1
+4：0x00  ~  0xFF        //二维码 2
+5：无效                 //二维码 3
+6：无效                 //二维码 4
+7: 无效                 //二维码 5
+8. 无效                 //二维码 6
+9：帧尾 0x88
 */
+
+#define StartTask_Sta   0x11
+#define ReceTask_Sta    0x22
+#define FinishTask_Sta  0x33
 
 //vehicle move task
 #define Lo_micro_move            0x00  //后续 参数：坐标
@@ -58,11 +64,10 @@
 
 #ifdef TOP_LEVEL
 //定长数据 
-typedef struct 
-{
-    uint8_t RxBuff[8];
-    uint8_t TxBuff[8];
-    uint8_t RxCnt;
+typedef struct {
+    uint8_t RxBuff[CARTASK_MSG_LEN];
+    uint8_t TxBuff[CARTASK_MSG_LEN];
+    uint32_t RxCnt;
 
     uint8_t TaskNum;
     uint8_t TaskState;
@@ -71,7 +76,10 @@ typedef struct
 
 extern TopDataType TopData;
 
-void uart1_init(uint32_t bound);
+void CarTopComUartInit(uint32_t bound);
+void CarTopSendData(uint8_t  DataBuff[]);
+void TopSendTask(uint8_t TaskID, uint8_t TaskState);
+void TopSendQRMsg(char QR_MSG[]);
 
 #endif // TOP_LEVEL
 
@@ -81,9 +89,12 @@ void uart1_init(uint32_t bound);
 
 typedef struct 
 {
-    uint8_t RxBuff[8];
-    uint8_t TxBuff[8];
-    uint8_t RxCnt;
+    uint8_t RxBuff[CARTASK_MSG_LEN];
+    uint8_t TxBuff[CARTASK_MSG_LEN];
+    uint32_t RxCnt;
+
+    uint8_t QR1_MSG[3];
+    uint8_t QR2_MSG[3];
 
     uint8_t TaskNum;
     uint8_t TaskState;
@@ -94,7 +105,10 @@ typedef struct
 
 extern BottomDataType BottomData;
 
-void uart6_init(uint32_t bound);
+void CarBottomComUartInit(uint32_t bound);
+void CarBottomSendData(uint8_t DataBuff[]);
+void BottomReturnData(uint8_t TaskID, uint8_t TaskState);
+
 #endif // BOTTOM_LEVEL
 
 #endif  //_CARTASKCONFIG_H_
