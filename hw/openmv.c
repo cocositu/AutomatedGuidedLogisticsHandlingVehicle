@@ -1,6 +1,6 @@
 #include"openmv.h"
 #include "string.h"
-
+#include"lcd.h"
 #ifdef TOP_LEVEL
 
 OV_MSG_Sturct OV_Struct = {0};
@@ -31,22 +31,31 @@ void ToOpenMV_uart_init(uint32_t bound){
 	USART_InitStructure.USART_Mode       = USART_Mode_Rx | USART_Mode_Tx;	
     USART_Init(ToOPENMV_UART, &USART_InitStructure); 
 
+	USART_ITConfig(ToOPENMV_UART, USART_IT_RXNE, ENABLE);
+	NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel                   = ToOPENMV_UART_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 2;		
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;			
+    NVIC_Init(&NVIC_InitStructure);	
+
     USART_Cmd(ToOPENMV_UART, ENABLE);
 }
 
 void OV_SendData(char DataByte){
+	USART_ClearFlag(ToOPENMV_UART, USART_FLAG_TC);	
 	USART_SendData(ToOPENMV_UART, DataByte);
-    while(USART_GetFlagStatus(ToOPENMV_UART, USART_FLAG_TC) == 0);					
-	USART_ClearFlag(ToOPENMV_UART, USART_FLAG_TC);		
+    while(USART_GetFlagStatus(ToOPENMV_UART, USART_FLAG_TC) == 0);
 }											
 
 void ToOPENMV_UART_IRQHandler(void){
-	if(USART_GetITStatus(QRCODE_UART, USART_IT_RXNE) != RESET){
-		USART_ClearITPendingBit(QRCODE_UART,USART_IT_RXNE);
+	
+	if(USART_GetITStatus(ToOPENMV_UART, USART_IT_RXNE) != RESET){
+		USART_ClearITPendingBit(ToOPENMV_UART,USART_IT_RXNE);
 		OV_Struct.RxBuff[OV_Struct.RxCnt++] = ToOPENMV_UART->DR;
 		if ((OV_Struct.RxBuff[0] == '[')&&(OV_Struct.RxBuff[9] == ']'))
 		{
-			if(OV_Struct.RxBuff[1] == OV_Struct.TaskNum)	//任务匹配（可不要）相等前提是先给了OpenMV数据
+			if(OV_Struct.RxBuff[1] == OV_Struct.TaskNum + '0')	//任务匹配（可不要）相等前提是先给了OpenMV数据
 			{
 				if((OV_Struct.TaskNum == OV_RED_COLOR)||\
 				(OV_Struct.TaskNum == OV_GREEN_COLOR)||\

@@ -19,6 +19,8 @@
 #include "lcd_init.h"
 #include "lcd.h"
 #include"manipulator.h"
+#include"openmv.h"
+#include"manipulator.h"
 #endif //TOP_LEVEL
 
 /*底盘代码*/
@@ -32,8 +34,7 @@
 
 /*两层通用文件*/
 #include "led.h"
-// #include"comm_uart.h"
-#include"uart.h"
+#include"CarTaskConfig.h"
 
 
 // #include"uart.h"
@@ -51,7 +52,6 @@ static void task_Led(void* pvParameters);
 static void task_QRcodeIdentify(void* pvParameters);  
 
 
-
 int main(void){
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	delay_init();
@@ -59,19 +59,26 @@ int main(void){
 	LCD_Fill(0,0,LCD_W,LCD_H,BLACK);
 	QR_uart_init(115200);
 	MAN_SEP_UART_Init(115200);
+	ToOpenMV_uart_init(115200);
 	LED = Create_Arr_LedStruct(2);
 	LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
 	LED[1]->SetEnLevel = SET_EN_LOW_LEVEL;
 	
+	
 	LCD_ShowString(0, 0, "WAITING...", WHITE, BLACK, 24,0);
 	delay_xms(5000);
 	LCD_Fill(0,0,LCD_W,LCD_H,BLACK);
-
-	/**
-	 * 
-	 */
-	ManStepUartCtrl(0,50, 40, 4000, 1);
+	while (1){
+		OV_Struct.TaskNum = 0x01;
+		OV_SendData(0x01);
+		delay_xms(100);
+		if(OV_Struct.TaskState == 'y'){
+			LCD_ShowString(0, 0, "red", WHITE, BLACK, 24, 0);
+		}
+	}
 	
+	
+	// ManStepUartCtrl(0,50, 40, 4000, 1);
 	
 	
 		/* 创建app_task1任务 */

@@ -56,7 +56,6 @@
 #define Lo_StoreR_zero           0x14  //存放右 到 初始位置
 
 
-
 #ifdef TOP_LEVEL
 //定长数据 
 typedef struct 
@@ -71,6 +70,9 @@ typedef struct
 }TopDataType;
 
 extern TopDataType TopData;
+
+void uart1_init(uint32_t bound);
+
 #endif // TOP_LEVEL
 
 
@@ -91,6 +93,8 @@ typedef struct
 }BottomDataType;
 
 extern BottomDataType BottomData;
+
+void uart6_init(uint32_t bound);
 #endif // BOTTOM_LEVEL
 
 #endif  //_CARTASKCONFIG_H_

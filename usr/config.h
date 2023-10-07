@@ -121,21 +121,21 @@ typedef enum {
 #define ToOPENMV_UART_FUN_UART_CLK(NewState)    RCC_APB1PeriphClockCmd(ToOPENMV_UART_UART_CLK, NewState)
 #define ToOPENMV_UART_RX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(ToOPENMV_UART_RX_GPIO_CLK, NewState)
 #define ToOPENMV_UART_TX_FUN_GPIO_CLK(NewState) RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_GPIO_CLK, NewState)
-#define ToOPENMV_UART_RX_DMA                       DMA1
-#define ToOPENMV_UART_RX_DMA_STREAM                DMA1_Stream2
-#define ToOPENMV_UART_DMA_IRQn                     DMA1_Stream2_IRQn
-#define ToOPENMV_UART_RX_DMA_IRQHandler(x)         DMA1_Stream2_IRQHandler(x)
-#define ToOPENMV_UART_RX_DMA_FLAG_TCIF             DMA_FLAG_TCIF2
-#define ToOPENMV_UART_RX_DMA_CHANNEL               DMA_Channel_4
-#define ToOPENMV_UART_RES_ADRESS                   UART4->DR
-#define ToOPENMV_UART_RX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
-#define ToOPENMV_UART_RX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_RX_DMA_CLK , NewState)
-#define ToOPENMV_UART_TX_DMA                       DMA1
-#define ToOPENMV_UART_TX_DMA_STREAM                DMA1_Stream4
-#define ToOPENMV_UART_TX_DMA_CHANNEL               DMA_Channel_4
-#define ToOPENMV_UART_SEND_ADRESS                  UART4->DR
-#define ToOPENMV_UART_TX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
-#define ToOPENMV_UART_TX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_DMA_CLK , NewState)
+// #define ToOPENMV_UART_RX_DMA                       DMA1
+// #define ToOPENMV_UART_RX_DMA_STREAM                DMA1_Stream2
+// #define ToOPENMV_UART_DMA_IRQn                     DMA1_Stream2_IRQn
+// #define ToOPENMV_UART_RX_DMA_IRQHandler(x)         DMA1_Stream2_IRQHandler(x)
+// #define ToOPENMV_UART_RX_DMA_FLAG_TCIF             DMA_FLAG_TCIF2
+// #define ToOPENMV_UART_RX_DMA_CHANNEL               DMA_Channel_4
+// #define ToOPENMV_UART_RES_ADRESS                   UART4->DR
+// #define ToOPENMV_UART_RX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
+// #define ToOPENMV_UART_RX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_RX_DMA_CLK , NewState)
+// #define ToOPENMV_UART_TX_DMA                       DMA1
+// #define ToOPENMV_UART_TX_DMA_STREAM                DMA1_Stream4
+// #define ToOPENMV_UART_TX_DMA_CHANNEL               DMA_Channel_4
+// #define ToOPENMV_UART_SEND_ADRESS                  UART4->DR
+// #define ToOPENMV_UART_TX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
+// #define ToOPENMV_UART_TX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_DMA_CLK , NewState)
 
 
 #endif //TOP_LEVEL

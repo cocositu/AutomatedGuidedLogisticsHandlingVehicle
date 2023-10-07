@@ -1,4 +1,3 @@
-
 #include"manipulator.h"
 #ifdef TOP_LEVEL
 
@@ -128,9 +127,10 @@ void ManStepUartCtrl(uint8_t Motor_dir, uint16_t Motor_vel, uint8_t Motor_acc, \
     MAN_SEP_MSG_Buff[12] = (uint8_t)0x6B;
    
     MAN_SEP_UART_DMA_STREAM->NDTR = MAN_SEP_MSG_LEN;  
-    DMA_ClearFlag(MAN_SEP_UART_DMA_STREAM, DMA_FLAG_TCIF6);	
+    DMA_ClearFlag(MAN_SEP_UART_DMA_STREAM, MAN_SEP_UART_DMA_FLAG_TCIF );	
     DMA_Cmd(MAN_SEP_UART_DMA_STREAM, ENABLE);
 }
+
 
 void ManServoSend(uint8_t *buf, uint8_t len){
 	MAN_SERVO_UART_DMA_STREAM->CR &= ~DMA_SxCR_EN; // 清除EN位
