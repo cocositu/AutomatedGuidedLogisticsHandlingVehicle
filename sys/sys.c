@@ -82,7 +82,7 @@ int _abs(int num){
     else return num;
 }
 
-float _abs_f(float num){
+double _abs_f(double num){
     if (num < 0) return -num;
     else return num;
 }
@@ -93,7 +93,7 @@ int _sign(int num){
     else return 1;
 }
 
-int _sign_f(float num){
+int _sign_f(double num){
     if (num  < 0) return -1;
     else return 1;
 }

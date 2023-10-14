@@ -21,6 +21,9 @@
 #define true    1
 #define false   0
 
+#define PI                   (3.1415926535f)
+
+
 typedef unsigned char uint8_t;
 typedef uint8_t bool;
 // typedef enum {

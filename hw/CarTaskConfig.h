@@ -106,8 +106,8 @@ typedef struct
 extern BottomDataType BottomData;
 
 void CarBottomComUartInit(uint32_t bound);
-void CarBottomSendData(uint8_t DataBuff[]);
-void BottomReturnData(uint8_t TaskID, uint8_t TaskState);
+ void CarBottomSendData(uint8_t   DataBuff[], uint32_t DataLenth);
+void BottomRetuTask(uint8_t TaskID, uint8_t TaskState);
 
 #endif // BOTTOM_LEVEL
 

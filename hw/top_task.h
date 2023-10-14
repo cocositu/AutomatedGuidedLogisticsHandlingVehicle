@@ -26,15 +26,21 @@
 static TaskHandle_t taskStart_handle  = NULL;
 static TaskHandle_t taskLed_handle = NULL;
 static TaskHandle_t taskQrcodeIdentify_handle = NULL;
-
+static TaskHandle_t taskManCrawl_handle = NULL;
+static TaskHandle_t taskPutItem_handle =NULL;
 
 void bsp_init(void);
 
 void taskStart_start(void);
+void taskLed_start(void);
+void taskQrcodeIdentify_start(void);
+void taskPutItem_start(void);
 
 void taskStart(void* pvParameters); 
-static void taskLed(void* pvParameters); 
-static void taskQRcodeIdentify(void* pvParameters);  
+void taskLed(void* pvParameters); 
+void taskQRcodeIdentify(void* pvParameters);  
+void taskManCrawl(void* pvParameters);
+void taskPutItem(void* pvParameters);
 
 
 #endif //TOP_LEVEL

@@ -18,6 +18,13 @@ void MAN_SERVO_UART_Init(uint32_t bound);
 void ManServoSend(uint8_t *buf, uint8_t len);
 void ManStepUartCtrl(uint8_t Motor_dir, uint16_t Motor_vel, uint8_t Motor_acc, \
                      uint32_t Motor_clk, uint8_t Abs_or_Rel_Flag);
-                     
+
+void ManServo_StepMoter_Init(void);
+void Item_tray_Turn(int x);
+void Catch_Itemtray_Action(void);
+void RoughingArea_Action(void);
+void Catch_StagingArea_Action_(void);
+void Put_ExtensiveArea_Action_(void); 
+
 #endif  //TOP_LEVEL
 #endif  //_MANIPULATOR_H_

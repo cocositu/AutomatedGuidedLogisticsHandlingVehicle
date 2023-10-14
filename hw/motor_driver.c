@@ -1,5 +1,12 @@
 #include"motor_driver.h"
 #include"sys.h"
+#include"pid.h"
+#include"FreeRTOS.h"
+#include"task.h"
+#include"hwt101.h"
+#include"KinematicModel.h"
+#include"stdlib.h"
+#include"math.h"
 #ifdef BOTTOM_LEVEL
 #ifdef STEPPER_MOTOR_DRIVER
 
@@ -9,6 +16,7 @@
 #define MAX_Vel         3 
 #define Max_RealVel     2400
 
+Arr_pStruct_Pos_PID tmp_pid = NULL;
 
 StepBufferType StepMotorBuffer[4][STEPS_LOOP_MAXNUM+1];
 StepBufferType *StepMotorLFBuffer = StepMotorBuffer[MOTOR_LF_ADDR-1];
@@ -22,7 +30,7 @@ MotorUartBufferType *MotorLRUartBuffer = MotorUartBuffer[MOTOR_LR_ADDR];
 MotorUartBufferType *MotorRFUartBuffer = MotorUartBuffer[MOTOR_RF_ADDR];
 MotorUartBufferType *MotorRRUartBuffer = MotorUartBuffer[MOTOR_RR_ADDR];
 
-bool isENMotor[5]          = {0};
+bool    isENMotor[5]      = {0};
 uint32_t StepCycles[5]     = {0};
 uint32_t StepCyclesRema[5] = {0};
 uint32_t flag_dma_motor[5] = {0};
@@ -601,10 +609,15 @@ void sendMotorUart_Once(MOTOR_UART_ADDR_ENUM Motor_addr, int Msg_Lenth){
         DMA_ClearFlag(MOTOR_LR_UART_DMA_STREAM, DMA_FLAG_TCIF3);
         DMA_ClearFlag(MOTOR_RF_UART_DMA_STREAM, DMA_FLAG_TCIF7);
         DMA_ClearFlag(MOTOR_RR_UART_DMA_STREAM, DMA_FLAG_TCIF7);
+        USART_Cmd(MOTOR_LF_UART, ENABLE);  
+		USART_Cmd(MOTOR_LR_UART, ENABLE);
+		USART_Cmd(MOTOR_RF_UART, ENABLE);
+		USART_Cmd(MOTOR_RR_UART, ENABLE);
 		DMA_Cmd(MOTOR_LF_UART_DMA_STREAM, ENABLE);  
 		DMA_Cmd(MOTOR_LR_UART_DMA_STREAM, ENABLE);
 		DMA_Cmd(MOTOR_RF_UART_DMA_STREAM, ENABLE);
 		DMA_Cmd(MOTOR_RR_UART_DMA_STREAM, ENABLE);
+        break;
     }
 }
 
@@ -614,9 +627,11 @@ void MotorUartCtrl(                                                             
 ){  
     uint8_t real_Motor_dir = 0;
     if(Motor_addr == MOTOR_LF_ADDR || Motor_addr == MOTOR_LR_ADDR){
-        real_Motor_dir = 0x00;
+        if(Motor_dir == MOTOR_FORWARD)      real_Motor_dir = 0x01;
+        else if(Motor_dir == MOTOR_REVERSE) real_Motor_dir = 0x00;
     }else if(Motor_addr == MOTOR_RF_ADDR || Motor_addr == MOTOR_RR_ADDR){
-        real_Motor_dir = 0x01;
+        if(Motor_dir == MOTOR_FORWARD)      real_Motor_dir = 0x01;
+        else if(Motor_dir == MOTOR_REVERSE) real_Motor_dir = 0x00;
     }
     MotorUartBuffer[Motor_addr][0]  = Motor_addr;
     MotorUartBuffer[Motor_addr][1]  = 0xFD;
@@ -711,7 +726,7 @@ void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr){
             DMA_ClearFlag(MOTOR_LR_DMA_STREAM, MOTOR_LR_TIM_DMA_FLAG_TCIF);
             DMA_Cmd(MOTOR_LR_DMA_STREAM, ENABLE);
             TIM_Cmd(MOTOR_LR_TIM, ENABLE);
-            TIM_CtrlPWMOutputs(TIM1, ENABLE); 
+            TIM_CtrlPWMOutputs(MOTOR_LR_TIM, ENABLE); 
         }
         if(isENMotor[MOTOR_RF_ADDR]){
             flag_dma_motor[MOTOR_RF_ADDR] = 0;
@@ -719,8 +734,8 @@ void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr){
             TIM_ARRPreloadConfig(MOTOR_RF_TIM, ENABLE);//ARPE使能
             MOTOR_RF_TIM->EGR |= 0x01;
             DMA_ClearFlag(MOTOR_RF_DMA_STREAM, MOTOR_RF_TIM_DMA_FLAG_TCIF);
-            DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
-            TIM_Cmd(MOTOR_RR_TIM, ENABLE);
+            DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
+            TIM_Cmd(MOTOR_RF_TIM, ENABLE);
         }
         if(isENMotor[MOTOR_RR_ADDR]){
             flag_dma_motor[MOTOR_RR_ADDR] = 0;
@@ -728,9 +743,9 @@ void Fun_En_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr){
             TIM_ARRPreloadConfig(MOTOR_RR_TIM, ENABLE);//ARPE使能      
             MOTOR_RR_TIM->EGR |= 0x01;
             DMA_ClearFlag(MOTOR_RR_DMA_STREAM, MOTOR_RR_TIM_DMA_FLAG_TCIF);
-            DMA_Cmd(MOTOR_RF_DMA_STREAM, ENABLE);
-            TIM_Cmd(MOTOR_RF_TIM, ENABLE); 
-            TIM_CtrlPWMOutputs(TIM8, ENABLE);
+            DMA_Cmd(MOTOR_RR_DMA_STREAM, ENABLE);
+            TIM_Cmd(MOTOR_RR_TIM, ENABLE); 
+            TIM_CtrlPWMOutputs(MOTOR_RR_TIM, ENABLE);
         }
         return;
     }
@@ -795,7 +810,7 @@ void Fun_DataLenth_DMA_Motor(MOTOR_UART_ADDR_ENUM Motor_addr, uint32_t translent
 
 void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir, 
     uint32_t Motor_vel,uint32_t Motor_acc, uint32_t Motor_clk, bool isGearShift, bool isEn){ 
-   
+    Motor_clk=_abs(Motor_clk);
     if(Motor_vel == 0 || Motor_clk == 0){
         isENMotor[Motor_addr] = 0;
         return;
@@ -952,5 +967,174 @@ void stop_all_motor(void){
     DMA_Cmd(MOTOR_RR_DMA_STREAM, DISABLE);
     TIM_Cmd(MOTOR_RR_TIM, DISABLE);
 }
+
+
+void AntiClockwise_90Angle(MOTOR_TYPE_ENUM Motor_ctrl){
+    switch (Motor_ctrl){
+    case UART_CTRL:
+        MotorUartCtrl(MOTOR_LF_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1214, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1214, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1214, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1214, REL_FLAG, False);
+	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+        break;
+    case TIM_CTRL:
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 800, 0, 1214, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 800, 0, 1214, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, 1214, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 1214, False, False);
+        sendMotorTim_Once(MOTOR_ALL_ADDR);
+        break;
+    }
+}
+
+
+void Clockwise_90Angle(MOTOR_TYPE_ENUM Motor_ctrl){
+    switch (Motor_ctrl){
+    case UART_CTRL:
+        MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1211, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1211, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1211, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1211, REL_FLAG, False);
+	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+        break;
+    case TIM_CTRL:
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, 1210, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, 1210, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 800, 0, 1210, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, 1210, False, False);
+        sendMotorTim_Once(MOTOR_ALL_ADDR);
+        break;
+    }
+}
+
+void AntiClockwise_180Angle(MOTOR_TYPE_ENUM Motor_ctrl){
+    switch (Motor_ctrl){
+    case UART_CTRL:
+        MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1214*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1214*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1214*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1214*2, REL_FLAG, False);
+	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+        break;
+    case TIM_CTRL:
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 800, 0, 1214*2+1, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 800, 0, 1214*2+1, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, 1214*2+1, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 1214*2+1, False, False);
+        sendMotorTim_Once(MOTOR_ALL_ADDR);
+        break;
+    }
+}
+
+
+void Clockwise_180Angle(MOTOR_TYPE_ENUM Motor_ctrl){
+    switch (Motor_ctrl){
+    case UART_CTRL:
+        MotorUartCtrl(MOTOR_LF_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1211*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1211*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1211*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1211*2, REL_FLAG, False);
+	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+        break;
+    case TIM_CTRL:
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, 1211*2, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, 1211*2, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 800, 0, 1211*2, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, 1211*2, False, False);
+        sendMotorTim_Once(MOTOR_ALL_ADDR);
+        break;
+    }
+}
+
+void pid_init(void){
+     tmp_pid = create_PosPIDStructure(1);
+}
+
+void MoveInLine_PID(double vel, double distance, bool isOSTime){
+    ((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
+    uint32_t loop_i = (uint32_t)(distance / 0.05);
+    double  re    = (uint32_t)(distance -  loop_i * 0.05);
+    for(int i = 0;i <=loop_i; i++){
+		double yaw = HWT101_Struct.YawAngle;
+		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
+		if(_abs(tmp_dw) > 200) tmp_dw = 200 *_sign(tmp_dw);
+        if(i == loop_i && vel < 0) Kinematic_Analysis_Pos(vel-0.6, 0, 0, (re+0.05)*_sign_f(vel), 0,0);
+		else if(i == loop_i) Kinematic_Analysis_Pos(vel, 0, 0, re*_sign_f(vel), 0,0);
+        else if (i % 2 == 0 && vel>0) Kinematic_Analysis_Pos(vel, 0.0075 ,-tmp_dw /100.0, 0.4*_sign_f(vel), 0.1, 0.1*_sign_f(-tmp_dw));
+        else if (i % 2 == 0 && vel<0) Kinematic_Analysis_Pos(vel, 0.0075 ,-tmp_dw /100.0, 0.4*_sign_f(vel), 0.1, 0.1*_sign_f(-tmp_dw));
+        else Kinematic_Analysis_Pos(vel, 0, -tmp_dw /100.0, 0.4*_sign_f(vel), 0, 0.1*_sign_f(-tmp_dw));
+		MotorTIMCtrl(MOTOR_LF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[0])+1)/2), (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, False);
+		MotorTIMCtrl(MOTOR_LR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[1])+1)/2), (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, False);
+		MotorTIMCtrl(MOTOR_RF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[2])+1)/2), (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, False);
+		MotorTIMCtrl(MOTOR_RR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[3])+1)/2), (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, False);
+		Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
+        if(isOSTime)    vTaskDelay((uint32_t)(1000*0.05/_abs_f(vel)));
+        else            delay_xms((uint32_t)(1000*0.05/_abs_f(vel)));    
+	}
+    stop_all_motor();
+}
+
+void TranslationMove(MOTOR_TYPE_ENUM Motor_ctrl, double V, double Dx, double Dy, bool isOSTime){
+    V = _abs_f(V);
+    double tmp_sqrt = sqrt(Dx*Dx + Dy*Dy);
+    double Vx = V * Dx / tmp_sqrt;
+    double Vy = V * Dy / tmp_sqrt;
+    Kinematic_Analysis_Pos(Vx, Vy, 0, Dx, Dy, 0);
+
+	switch (Motor_ctrl){
+    case UART_CTRL:
+        MotorUartCtrl(MOTOR_LF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[0])+1)/2), (uint32_t)(vel_weel[0]*60), 0x50, (uint32_t)(800*_abs_f(pos_weel[0])), REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[1])+1)/2), (uint32_t)(vel_weel[1]*60), 0x50, (uint32_t)(800*_abs_f(pos_weel[1])), REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[2])+1)/2), (uint32_t)(vel_weel[2]*60), 0x50, (uint32_t)(800*_abs_f(pos_weel[2])), REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[3])+1)/2), (uint32_t)(vel_weel[3]*60), 0x50, (uint32_t)(800*_abs_f(pos_weel[3])), REL_FLAG, False);
+	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
+        if(isOSTime) vTaskDelay((uint32_t)(1200*tmp_sqrt/V));
+        else         delay_xms((uint32_t)(1200*tmp_sqrt/V));
+        break;
+    case TIM_CTRL:
+        MotorTIMCtrl(MOTOR_LF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[0])+1)/2), (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, False);
+		MotorTIMCtrl(MOTOR_LR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[1])+1)/2), (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, False);
+		MotorTIMCtrl(MOTOR_RF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[2])+1)/2), (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, False);
+		MotorTIMCtrl(MOTOR_RR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[3])+1)/2), (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, False);
+        sendMotorTim_Once(MOTOR_ALL_ADDR);
+        if(isOSTime) vTaskDelay((uint32_t)(1000*tmp_sqrt/V));
+        else         delay_xms((uint32_t)(1000*tmp_sqrt/V));
+        stop_all_motor();
+        break;
+    }
+}
+
+
+void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime){
+    
+    V = _abs_f(V);
+    if(V < esp) return;
+    double Ds = sqrt(Dx*Dx + Dy*Dy);
+    double Vx = V * Dx / Ds;
+    double Vy = V * Dy / Ds;
+
+    ((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
+    uint32_t loop_i = (uint32_t)(Ds / 0.05);
+    double  re_x    = (uint32_t)(Dx -  loop_i * 0.05 * Dx / Ds);
+    double  re_y    = (uint32_t)(Dy -  loop_i * 0.05 * Dy / Ds);
+    for(uint32_t i = 0;i <=loop_i; i++){
+		double yaw = HWT101_Struct.YawAngle;
+		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
+		if(_abs(tmp_dw) > 200) tmp_dw = 200 *_sign(tmp_dw);
+		if(i == loop_i) Kinematic_Analysis_Pos(Vx, Vy, 0, re_x, re_y, 0);
+		else Kinematic_Analysis_Pos(Vx, Vy, -tmp_dw /100.0, 0.8*_sign_f(Dx), 0.8*_sign_f(Dy), 0.2*_sign_f(-tmp_dw));
+
+		MotorTIMCtrl(MOTOR_LF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[0])+1)/2), (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, False);
+		MotorTIMCtrl(MOTOR_LR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[1])+1)/2), (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, False);
+		MotorTIMCtrl(MOTOR_RF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[2])+1)/2), (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, False);
+		MotorTIMCtrl(MOTOR_RR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[3])+1)/2), (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, False);
+		Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
+        if(isOSTime)    vTaskDelay((uint32_t)(1000*0.05/_abs_f(V)));
+        else            delay_xms((uint32_t)(1000*0.05/_abs_f(V)));    
+	}
+    stop_all_motor();
+}
+
 #endif //STEPPER_MOTOR_DRIVER
 #endif //BOTTOM_LEVEL

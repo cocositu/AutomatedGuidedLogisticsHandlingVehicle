@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER,ARM_MATH_LOOPUNROLL,ARM_MATH_CM4,STM32F4xx</Define>
               <Undefine></Undefine>
-              <IncludePath>.\usr;.\core;.\lib\inc;.\CMSIS\DSP\Include;.\CMSIS\FreeRTOS\include;.\CMSIS\FreeRTOS\portable\RVDS\ARM_CM4F;.\hw;.\hw\LCD;.\sys</IncludePath>
+              <IncludePath>.\usr;.\core;.\lib\inc;.\CMSIS\DSP\Include;.\CMSIS\FreeRTOS\include;.\CMSIS\FreeRTOS\portable\RVDS\ARM_CM4F;.\hw;.\hw\LCD;.\sys;.\hw\Servo</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -781,16 +781,6 @@
               <FilePath>.\hw\led.h</FilePath>
             </File>
             <File>
-              <FileName>beep.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\hw\beep.c</FilePath>
-            </File>
-            <File>
-              <FileName>beep.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\hw\beep.h</FilePath>
-            </File>
-            <File>
               <FileName>comm_uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\hw\comm_uart.c</FilePath>
@@ -851,14 +841,54 @@
               <FilePath>.\hw\QRcode.h</FilePath>
             </File>
             <File>
-              <FileName>uart.c</FileName>
+              <FileName>bottom_task.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\hw\uart.c</FilePath>
+              <FilePath>.\hw\bottom_task.c</FilePath>
             </File>
             <File>
-              <FileName>uart.h</FileName>
+              <FileName>bottom_task.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\hw\uart.h</FilePath>
+              <FilePath>.\hw\bottom_task.h</FilePath>
+            </File>
+            <File>
+              <FileName>CarTaskConfig.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\CarTaskConfig.c</FilePath>
+            </File>
+            <File>
+              <FileName>CarTaskConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\CarTaskConfig.h</FilePath>
+            </File>
+            <File>
+              <FileName>manipulator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\manipulator.c</FilePath>
+            </File>
+            <File>
+              <FileName>manipulator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\manipulator.h</FilePath>
+            </File>
+            <File>
+              <FileName>openmv.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\openmv.c</FilePath>
+            </File>
+            <File>
+              <FileName>openmv.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\openmv.h</FilePath>
+            </File>
+            <File>
+              <FileName>top_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\top_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>top_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\top_task.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -904,6 +934,21 @@
               <FileName>sys.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\sys\sys.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>servo</GroupName>
+          <Files>
+            <File>
+              <FileName>LobotServoController.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hw\Servo\LobotServoController.c</FilePath>
+            </File>
+            <File>
+              <FileName>LobotServoController.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\hw\Servo\LobotServoController.h</FilePath>
             </File>
           </Files>
         </Group>

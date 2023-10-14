@@ -38,7 +38,6 @@ void taskMoveTurnPlateAreaToStorArea_start(void);
 void taskMvBetweenColorCir_start(void);
 
 
-
 void taskStart(void* pvParameters); 
 void taskMoveDriveOut(void* pvParameters);
 void taskMoveStaAreaToQRArea(void* pvParameters);

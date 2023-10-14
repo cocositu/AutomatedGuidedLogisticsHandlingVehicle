@@ -2,7 +2,9 @@
 #ifdef TOP_LEVEL
 
 #include"LobotServoController.h"
-
+#include"sys.h"
+#include"FreeRTOS.h"
+#include"task.h"
 char MAN_SEP_MSG_Buff[MAN_SEP_MSG_LEN]      = {0};
 char MAN_SERVO_MSG_Buff[MAN_SERVO_MSG_LEN]  = {0};
 
@@ -138,6 +140,138 @@ void ManServoSend(uint8_t *buf, uint8_t len){
     MAN_SERVO_UART_DMA_STREAM->M0AR = (uint32_t)buf; 
     DMA_ClearFlag(MAN_SERVO_UART_DMA_STREAM, MAN_SERVO_UART_DMA_FLAG_TCIF);
     MAN_SERVO_UART_DMA_STREAM->CR |= DMA_SxCR_EN; // 设置EN位  
+}
+
+
+void ManServo_StepMoter_Init()
+{
+    //上电小范围
+    moveServo(3, 1500, 1500);
+    delay_ms(300);
+    moveServo(2, 600, 1500);
+    delay_ms(300);
+    moveServo(1, 1500,  1500);
+    delay_ms(300);
+   
+    moveServo(3, 1500, 1500);//物料盘初始状态（绿色）
+    delay_xms(500);
+    moveServo(2, 1500, 6000);//机械臂舵盘初始状态
+    delay_xms(500);
+    moveServo(1, 1750,  1500);////机械爪初始状态
+    ManStepUartCtrl(0,50, 40, 200, 1);//物料台识别高度
+}
+
+void Item_tray_Turn(int x)
+{
+    if(x==1)
+    {
+        moveServo(3, 2370, 450);//红
+    }
+    else if(x==2)
+    {
+        moveServo(3, 1500, 450);//绿
+    }
+    else if(x==3)
+    {
+        moveServo(3, 600, 450);//蓝
+    }
+    delay_xms(400);
+   // vTaskDelay(500);
+}
+
+void Catch_Itemtray_Action(void){
+    ManStepUartCtrl(0,0x1AA, 0xF0, 1900, 1);//步进电机降...
+    vTaskDelay(500);
+    moveServo(1, 1325, 500);//机械爪合上
+    vTaskDelay(500);
+    ManStepUartCtrl(0, 0x1AA, 0xF0, 400, 1);//步进电机升...
+    vTaskDelay(800);
+    moveServo(2, 500, 1800);//到达机械臂舵盘放置物料时的位置
+    vTaskDelay(2000);
+    ManStepUartCtrl(0,0x1AA, 0xF0, 1300, 1);//物料台识别高度
+    vTaskDelay(500);
+    moveServo(1, 1440, 400);//机械爪张开
+    vTaskDelay(400);
+    ManStepUartCtrl(0,0x1AA, 0xF0, 50, 1);//物料台识别高度
+    vTaskDelay(300);
+
+    // moveServo(3, 1500, 2000);//机械臂舵盘初始状态
+    //vTaskDelay(100);
+    moveServo(1, 1440, 500);//机械爪张开
+    vTaskDelay(500);
+    moveServo(3, 1500, 800);//物料盘初始状态（绿色）
+    vTaskDelay(500);
+    moveServo(2, 1500, 2000);//机械臂舵盘初始状态
+    vTaskDelay(500);
+    moveServo(1, 1750,  1200);////机械爪初始状态
+    ManStepUartCtrl(0, 0x1AA, 0xD0, 50, 1);//物料台识别高度
+    vTaskDelay(500);
+}
+
+void RoughingArea_Action(){
+    moveServo(2, 550, 2000);//到达机械臂舵盘放置物料时的位置
+    delay_xms(2000);
+    moveServo(1, 1520, 800);//机械爪张开
+    delay_xms(800);
+    ManStepUartCtrl(0,0x1AA, 0x20, 1600, 1);//物料抓转盘
+    delay_xms(2000);
+    moveServo(1, 1325, 800);//机械爪合上
+    delay_xms(800);
+    ManStepUartCtrl(0,0x1AA, 0x20, 700, 1);//物料台识别高度
+    delay_xms(1000);
+    moveServo(2, 1500, 2000);//机械臂舵盘初始状态
+    delay_xms(2000);
+    ManStepUartCtrl(0,0x100, 0x20, 3500, 1);//物料放地
+    delay_xms(2500);
+    moveServo(1, 1550, 1200);//机械爪张开
+    delay_xms(2000);
+    ManStepUartCtrl(0,0x1DD, 0x20, 800, 1);//物料台识别高度
+    delay_xms(1000);
+}
+
+void Catch_StagingArea_Action_()
+{
+    ManStepUartCtrl(0,0x100, 0xA0, 3500, 1);//物料放地
+    // ManStepUartCtrl(0,50, 40, 3500, 1);//物料放地//步进电机降...
+    delay_xms(2500);
+    moveServo(1, 1300, 800);//机械爪合上
+    delay_xms(800);
+    ManStepUartCtrl(0,0x100, 0xA0, 800, 1);//步进电机升...
+    delay_xms(2000);
+    moveServo(2, 500, 2000);//到达机械臂舵盘放置物料时的位置
+    delay_xms(2000);
+    ManStepUartCtrl(0,0x100, 0xE0, 1250, 1);//物料台识别高度
+    delay_xms(1000);
+    moveServo(1, 1400, 800);//机械爪张开
+    delay_xms(1500);
+    ManStepUartCtrl(0,0x100, 0xE0, 700, 1);//物料台识别高度
+    delay_xms(1500);
+    moveServo(1, 1440, 300);//机械爪张开
+    vTaskDelay(300);
+    moveServo(2, 1500, 2000);//机械臂舵盘初始状态
+    vTaskDelay(500);
+    moveServo(1, 1750,  1200);////机械爪初始状态
+    ManStepUartCtrl(0, 0x1AA, 0xD0, 50, 1);//物料台识别高度
+    vTaskDelay(500);
+}
+
+void Put_ExtensiveArea_Action_()
+{
+    moveServo(2, 500, 4000);//到达机械臂舵盘放置物料时的位置
+    delay_xms(4000);
+    moveServo(1, 1400, 1500);//机械爪张开
+    delay_xms(1500);
+    ManStepUartCtrl(0,50, 40, 1900, 1);//物料抓转盘
+    moveServo(1, 1325, 1500);//机械爪合上
+    delay_xms(1500);
+    ManStepUartCtrl(0,50, 40, 800, 1);//物料台识别高度
+    moveServo(3, 1500, 3500);//机械臂舵盘初始状态
+    delay_xms(3500);
+    ManStepUartCtrl(0,50, 40, 3500, 1);//物料放地
+    delay_xms(2000);
+    moveServo(1, 1400, 1500);//机械爪张开
+    delay_xms(1000);
+    ManStepUartCtrl(0,50, 40, 800, 1);//物料台识别高度
 }
 
 #endif //TOP_LEVEL

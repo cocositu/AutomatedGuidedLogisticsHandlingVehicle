@@ -3,6 +3,7 @@
 
 
 #define SYSTEM_SUPPORT_OS 1
+#define esp     		     (1e-6)  
 typedef unsigned int   uint32_t;
 typedef unsigned short uint16_t;
 
@@ -17,8 +18,8 @@ void delay_ms(uint16_t nms);
 void delay_xms(uint32_t nms);
 
 int _abs(int num);
-float _abs_f(float num);
+double _abs_f(double num);
 int _sign(int num);
-int _sign_f(float num);
+int _sign_f(double num);
 
 #endif //_SYS_H_

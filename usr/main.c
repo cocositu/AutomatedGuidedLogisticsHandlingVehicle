@@ -20,7 +20,6 @@
 #include "lcd.h"
 #include"manipulator.h"
 #include"openmv.h"
-#include"manipulator.h"
 #include"top_task.h"
 #endif //TOP_LEVEL
 
@@ -43,12 +42,13 @@
 // float stdResultDiffECG;
 // arm_std_f32(EcgDiscrList,28-4,&stdResultDiffECG);
 
+
 #ifdef  TOP_LEVEL
-
-
 
 int main(void){
 	bsp_init();
+
+
 	// while (1){
 	// 	OV_Struct.TaskNum = 0x01;
 	// 	OV_SendData(0x01);
@@ -59,7 +59,8 @@ int main(void){
 	// }	
 	// ManStepUartCtrl(0,50, 40, 4000, 1);
 	taskStart_start();
-	taskLed_start();
+	// taskQrcodeIdentify_start();
+	// taskLed_start();
 	/* 开启任务调度 */
 	vTaskStartScheduler(); 
 }
@@ -69,56 +70,64 @@ int main(void){
 
 #ifdef BOTTOM_LEVEL
 
-
+int fputc(int ch,FILE *p) {
+ 	USART_SendData(USART6, (uint8_t)ch);
+ 	while(USART_GetFlagStatus(USART6, USART_FLAG_TXE)==RESET);
+ 	return ch;
+}
+static TaskHandle_t taskled_handle = NULL;
+static void task_Led(void* pvParameters);
 int main(void){
 	bsp_init();
+	pid_init();
+	delay_xms(5000);
+	TranslationMove_PID(1, 0.6272, -0.6272, False);
+	delay_xms(5000);
+	MoveInLine_PID(1, 6.955, False);
+	delay_xms(5000);
+	delay_xms(5000);
+	AntiClockwise_90Angle(UART_CTRL);
+	while (1)
+	{
+		/* code */
+	}
 	
-	/* 创建taskStart任务 */
-	xTaskCreate((TaskFunction_t )taskStart,  	/* 任务入口函数 */
-			  (const char*  )"taskStart",		/* 任务名字 */
-			  (uint16_t     )512,  				/* 任务栈大小 */
-			  (void*        )NULL,				/* 任务入口函数参数 */
-			  (UBaseType_t  )4, 				/* 任务的优先级 */
-			  (TaskHandle_t*)&taskStart_handle);	/* 任务控制块指针 */ 
+	
 
-	/* 开启任务调度 */
-	vTaskStartScheduler(); 
+	
+	// /* 创建taskStart任务 */
+	// xTaskCreate((TaskFunction_t )taskStart,  	/* 任务入口函数 */
+	// 		  (const char*  )"taskStart",		/* 任务名字 */
+	// 		  (uint16_t     )512,  				/* 任务栈大小 */
+	// 		  (void*        )NULL,				/* 任务入口函数参数 */
+	// 		  (UBaseType_t  )4, 				/* 任务的优先级 */
+	// 		  (TaskHandle_t*)&taskStart_handle);	/* 任务控制块指针 */ 
+		/* 创建taskStart任务 */
+	// xTaskCreate((TaskFunction_t ) task_Led,  	/* 任务入口函数 */
+	// 		  (const char*  )"taskLed",		/* 任务名字 */
+	// 		  (uint16_t     )512,  				/* 任务栈大小 */
+	// 		  (void*        )NULL,				/* 任务入口函数参数 */
+	// 		  (UBaseType_t  )4, 				/* 任务的优先级 */
+	// 		  (TaskHandle_t*)&taskled_handle);	/* 任务控制块指针 */ 
+
+	// /* 开启任务调度 */
+	// vTaskStartScheduler(); 
 }
 
 
 
-
-	// MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
-	// MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
-	// MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
-	// MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800*3, 0, 800*10, False, False);
 	// Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
 
 
-// static void task_Led(void* pvParameters){	
-// 	while(1){
-// 		TickType_t lasttick = xTaskGetTickCount();
-// 		LED[0]->reverse(LED[0]);
-// 		LED[1]->reverse(LED[1]);
-// 		// Kinematic_Analysis_Pos(1, 0, 0, 3, 0);
-// 		// if(vel_weel[0] > 0)
-// 		// 	MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		// else
-// 		// 	MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
+static void task_Led(void* pvParameters){	
+	while(1){
 		
-// 		// MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*3), 0, (uint32_t)(800*3), False, False);
-// 		// MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*3), 0, (uint32_t)(800*3), False, False);
-// 		// MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*3), 0, (uint32_t)(800*3), False, False);
-// 		// Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
-// 		// MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
-// 		// MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
-// 		// MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
-// 		// MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 60, 0xF0, (uint32_t)(800/2), REL_FLAG, False);
-// 		// sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
-
-// 		xTaskDelayUntil(&lasttick, 1000);
-// 	}
-// }   
+		LED[0]->reverse(LED[0]);
+		LED[1]->reverse(LED[1]);
+		MoveInLine_PID(1, 7.8, True);
+		vTaskDelay(7000);
+	}
+}   
 
 #endif //BOTTOM_LEVEL
 
