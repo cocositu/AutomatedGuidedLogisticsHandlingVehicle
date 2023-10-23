@@ -21,6 +21,7 @@
 #include"manipulator.h"
 #include"openmv.h"
 #include"top_task.h"
+#include"LobotServoController.h"
 #endif //TOP_LEVEL
 
 /*底盘代码*/
@@ -48,21 +49,12 @@
 int main(void){
 	bsp_init();
 
-
-	// while (1){
-	// 	OV_Struct.TaskNum = 0x01;
-	// 	OV_SendData(0x01);
-	// 	delay_xms(100);
-	// 	if(OV_Struct.TaskState == 'y'){
-	// 		LCD_ShowString(0, 0, "red", WHITE, BLACK, 24, 0);
-	// 	}
-	// }	
-	// ManStepUartCtrl(0,50, 40, 4000, 1);
-	taskStart_start();
-	// taskQrcodeIdentify_start();
-	// taskLed_start();
+	//task_comUart_start();
+	task_taskSchedule_start();
 	/* 开启任务调度 */
+	LCD_ShowString(0, 0, "task_will_start   ", WHITE, BLACK, 16,0);
 	vTaskStartScheduler(); 
+	
 }
 
 
@@ -70,64 +62,55 @@ int main(void){
 
 #ifdef BOTTOM_LEVEL
 
-int fputc(int ch,FILE *p) {
- 	USART_SendData(USART6, (uint8_t)ch);
- 	while(USART_GetFlagStatus(USART6, USART_FLAG_TXE)==RESET);
- 	return ch;
-}
-static TaskHandle_t taskled_handle = NULL;
-static void task_Led(void* pvParameters);
+// int fputc(int ch,FILE *p) {
+//  	USART_SendData(USART6, (uint8_t)ch);
+//  	while(USART_GetFlagStatus(USART6, USART_FLAG_TXE)==RESET);
+//  	return ch;
+// }
+
 int main(void){
 	bsp_init();
 	pid_init();
-	delay_xms(5000);
-	TranslationMove_PID(1, 0.6272, -0.6272, False);
-	delay_xms(5000);
-	MoveInLine_PID(1, 6.955, False);
-	delay_xms(5000);
-	delay_xms(5000);
-	AntiClockwise_90Angle(UART_CTRL);
-	while (1)
-	{
-		/* code */
-	}
+
+	
+	task_taskSchedule_start();
+	// TranslationMove(UART_CTRL, 1, 0.607, 0, False);
+	// delay_xms(5000);
+
+	// MoveInLine_PID(1, 2.1645, False);
+	// delay_xms(3000);
+	// AntiClockwise_90Angle(UART_CTRL);
+	// delay_xms(3000);
+	// IMU_UART_YawZeroOut();
+	// delay_xms(1000);
+	// MoveInLine_PID(1, 2.730, False);
+	// delay_xms(5000);
+	// TranslationMove(UART_CTRL, 1, 0.606, 0, False);
+	// delay_xms(5000);
+	// TranslationMove(UART_CTRL, 1, 0.606, 0, False);
+	// delay_xms(5000);
+
+	// MoveInLine_PID(1, 3.3378, False);
+	// delay_xms(3000);
+	// AntiClockwise_90Angle(UART_CTRL);
+	// delay_xms(3000);
+	// IMU_UART_YawZeroOut();
+	// delay_xms(1000);
+	// MoveInLine_PID(1, 5.4821, False);
+	// delay_xms(6000);
+	// TranslationMove_PID(1, 1.5375 + 0.02,0.304 + 0.02, False);
+	// delay_xms(2000);
+	// AntiClockwise_90Angle(UART_CTRL);
+	// while (1){}
 	
 	
 
-	
-	// /* 创建taskStart任务 */
-	// xTaskCreate((TaskFunction_t )taskStart,  	/* 任务入口函数 */
-	// 		  (const char*  )"taskStart",		/* 任务名字 */
-	// 		  (uint16_t     )512,  				/* 任务栈大小 */
-	// 		  (void*        )NULL,				/* 任务入口函数参数 */
-	// 		  (UBaseType_t  )4, 				/* 任务的优先级 */
-	// 		  (TaskHandle_t*)&taskStart_handle);	/* 任务控制块指针 */ 
-		/* 创建taskStart任务 */
-	// xTaskCreate((TaskFunction_t ) task_Led,  	/* 任务入口函数 */
-	// 		  (const char*  )"taskLed",		/* 任务名字 */
-	// 		  (uint16_t     )512,  				/* 任务栈大小 */
-	// 		  (void*        )NULL,				/* 任务入口函数参数 */
-	// 		  (UBaseType_t  )4, 				/* 任务的优先级 */
-	// 		  (TaskHandle_t*)&taskled_handle);	/* 任务控制块指针 */ 
-
-	// /* 开启任务调度 */
-	// vTaskStartScheduler(); 
+	/* 开启任务调度 */
+	vTaskStartScheduler(); 
 }
 
 
 
-	// Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
-
-
-static void task_Led(void* pvParameters){	
-	while(1){
-		
-		LED[0]->reverse(LED[0]);
-		LED[1]->reverse(LED[1]);
-		MoveInLine_PID(1, 7.8, True);
-		vTaskDelay(7000);
-	}
-}   
 
 #endif //BOTTOM_LEVEL
 

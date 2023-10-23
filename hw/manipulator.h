@@ -19,12 +19,27 @@ void ManServoSend(uint8_t *buf, uint8_t len);
 void ManStepUartCtrl(uint8_t Motor_dir, uint16_t Motor_vel, uint8_t Motor_acc, \
                      uint32_t Motor_clk, uint8_t Abs_or_Rel_Flag);
 
-void ManServo_StepMoter_Init(void);
-void Item_tray_Turn(int x);
-void Catch_Itemtray_Action(void);
-void RoughingArea_Action(void);
-void Catch_StagingArea_Action_(void);
-void Put_ExtensiveArea_Action_(void); 
+
+void init_MechArm_and_MateTray(bool isOSTime);
+
+//materiel tray
+void GrabMate_to_MT(uint8_t x,bool isOSTime);
+
+//ground
+void GrabMate_to_G(uint8_t x,bool isOSTime);
+void PutMate_to_G(uint8_t x,bool isOSTime);
+
+void PutMate_to_M(uint8_t x,bool isOSTime);
+
+void alone_Rotate_MateTray(uint8_t x,bool isOSTime);
+void move_MechArm_to_MTBottom(bool isOSTime);
+
+// void ManServo_StepMoter_Init(void);
+// void Item_tray_Turn(int x);
+// void Catch_Itemtray_Action(void);
+// void RoughingArea_Action(void);
+// void Catch_StagingArea_Action_(void);
+// void Put_ExtensiveArea_Action_(void); 
 
 #endif  //TOP_LEVEL
 #endif  //_MANIPULATOR_H_

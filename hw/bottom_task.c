@@ -1,9 +1,10 @@
 #include"bottom_task.h"
 #include"string.h"
+#include"task_schedule.h"
+
 #ifdef BOTTOM_LEVEL
 
 Arr_pLedStruct LED = NULL;
-// Arr_pStruct_Pos_PID tmp_pid = NULL; 
 
 void bsp_init(void){
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
@@ -19,9 +20,8 @@ void bsp_init(void){
 	MOTOR_RR_UART_Init(115200);
 	
     IMU_uart_init(9600);
-	CarBottomComUartInit(9600);
+	BottomComUartInit(9600);
 	
-    // tmp_pid =  create_PosPIDStructure(1);
 	LED = Create_Arr_LedStruct(3);
 
     LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
@@ -32,518 +32,421 @@ void bsp_init(void){
 	delay_xms(1000);
 }
 
+void task_switch(uint8_t task_name){
+#ifdef TOP_LEVEL
+    if(task_name > 0xA0){
+        //串口发送数据开启
+        //串口发送数据获取任务运行状态,装入taskSta[task_name]中
+    }else{
+        switch (task_name){
+        case TASK_identifyQRcode:
+            task_identifyQRcode_start();
+            break;
+        case TASK_identify_grab_Material:
+            task_identify_grab_Material_start();
+            break;
+        case TASK_indetifyCrileColor:
+            task_indetifyCrileColor_start();
+            break;
+        case TASK_grabMaterial:
+            task_grabMaterial_start();
+            break;
+        case TASK_putMaterial:
+            task_putMaterial_start();
+            break;
+        }
+    }
+#endif //TOP_LEVEL
 
-// void taskStart(void* pvParameters){
-   
-//     //taskMoveStaAreaToQRArea_start();
+#ifdef BOTTOM_LEVEL
+    switch (task_name){
+    case TASK_moveSzoneToQRzone:
+        task_moveSzoneToQRzone_start();
+        break;
+    case TASK_moveQRzoneToMzone:
+        task_moveQRzoneToMzone_start();
+        break;
+    case TASK_moveMzoneToEzone:
+        task_moveMzoneToEzone_start();
+        break;
+    case TASK_moveEzoneToTzone:
+        task_moveEzoneToTzone_start();
+        break;
+    case TASK_moveTzoneToMzone:
+        task_moveTzoneToMzone_start();
+        break;   
+    case TASK_moveTzoneToSzone:
+        task_moveTzoneToSzone_start();
+        break;
+    case TASK_moveBetweenCricle:
+        task_moveBetweenCricle_start();
+        break;
+    case TASK_moveXYPosition:
+        task_moveXYPosition_start();
+        break; 
+    case TASK_moveContorCricle:
+        task_moveContorCricle_start();
+        break; 
+    }
+#endif //BOTTOM_LEVEL
+}
+
+void task_taskSchedule_start(void){
+	xTaskCreate((TaskFunction_t )task_taskSchedule, /* 任务入口函数 */
+			  (const char*    )"taskSchedule",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )2, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_taskSchedule_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveSzoneToQRzone_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveSzoneToQRzone, /* 任务入口函数 */
+			  (const char*    )"moveSzoneToQRzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveSzoneToQRzone_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveQRzoneToMzone_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveQRzoneToMzone,/* 任务入口函数 */
+			  (const char*    )"moveQRzoneToMzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveQRzoneToMzone_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveMzoneToEzone_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveMzoneToEzone, /* 任务入口函数 */
+			  (const char*    )"moveMzoneToEzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveMzoneToEzone_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveEzoneToTzone_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveEzoneToTzone, /* 任务入口函数 */
+			  (const char*    )"moveEzoneToTzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveEzoneToTzone_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveTzoneToMzone_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveTzoneToMzone, /* 任务入口函数 */
+			  (const char*    )"moveTzoneToMzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveTzoneToMzone_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveTzoneToSzone_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveTzoneToSzone, /* 任务入口函数 */
+			  (const char*    )"moveTzoneToSzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveTzoneToSzone_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveBetweenCricle_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveBetweenCricle,  		/* 任务入口函数 */
+			  (const char*    )"moveBetweenCricle",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveBetweenCricle_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveContorCricle_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveContorCricle,  		/* 任务入口函数 */
+			  (const char*    )"moveContorCricle",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveContorCricle_handle);	/* 任务控制块指针 */ 
+}
+
+void task_moveXYPosition_start(void){
+	xTaskCreate((TaskFunction_t ) task_moveXYPosition,  		/* 任务入口函数 */
+			  (const char*    )"moveTzoneToSzone",	    /* 任务名字 */
+			  (uint16_t       )512,  				    /* 任务栈大小 */
+			  (void*          )NULL,				    /* 任务入口函数参数 */
+			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (TaskHandle_t*  )&task_moveXYPosition_handle);	/* 任务控制块指针 */ 
+}
+
+
+void task_taskSchedule(void* pvParameters){
+	//用来处理上层板发来的数据
+   	while (1){
+		if(BottomData.needStartTask != 0){
+			taskSta[BottomData.needStartTask] = TASK_BUSY_STATE;
+			task_switch(BottomData.needStartTask);
+			BottomData.needStartTask=0;
+		}
+		if(BottomData.needRelyTask != 0){	
+			replyCurTaskStatus(BottomData.needRelyTask);
+			BottomData.needRelyTask = 0;
+		}
+    	vTaskDelay(50);
+   	}
 	
-// 	while (BottomData.TaskState != StartTask_Sta){
-// 		vTaskDelay(100);
-// 		LED[0]->reverse(LED[0]);
-// 	}
+   	vTaskDelete(task_taskSchedule_handle);
+    taskEXIT_CRITICAL();
+}
 
-// 	taskMoveDriveOut_start();
-//     vTaskDelete(taskStart_handle);
-//     taskEXIT_CRITICAL();
-// }   
-
-
-// void taskMoveDriveOut_start(void){
-// 	xTaskCreate((TaskFunction_t ) taskMoveDriveOut,  		/* 任务入口函数 */
-// 			  (const char*    )  "MoveDriveOut",	    /* 任务名字 */
-// 			  (uint16_t       )512,  				    /* 任务栈大小 */
-// 			  (void*          )NULL,				    /* 任务入口函数参数 */
-// 			  (UBaseType_t    )4, 					    /* 任务的优先级 */
-// 			  (TaskHandle_t*  )&taskMoveDriveOut_handle);	/* 任务控制块指针 */ 
-// }
-
-// void taskMoveStaAreaToQRArea_start(void){
-// 	xTaskCreate((TaskFunction_t ) taskMoveStaAreaToQRArea,  		/* 任务入口函数 */
-// 			  (const char*    )  "MoveStaAreaToQRArea",	    /* 任务名字 */
-// 			  (uint16_t       )512,  				    /* 任务栈大小 */
-// 			  (void*          )NULL,				    /* 任务入口函数参数 */
-// 			  (UBaseType_t    )4, 					    /* 任务的优先级 */
-// 			  (TaskHandle_t*  )&taskMoveStaAreaToQRArea_handle);	/* 任务控制块指针 */ 
-// }
-
-// void taskMoveQRAreaToTurnPlateArea_start(void){
-// 	xTaskCreate((TaskFunction_t ) taskMoveQRAreaToTurnPlateArea,  		/* 任务入口函数 */
-// 			  (const char*    )  "MoveQRAreaToTurnPlateArea",	    /* 任务名字 */
-// 			  (uint16_t       )512,  				    /* 任务栈大小 */
-// 			  (void*          )NULL,				    /* 任务入口函数参数 */
-// 			  (UBaseType_t    )4, 					    /* 任务的优先级 */
-// 			  (TaskHandle_t*  )&taskMoveQRAreaToTurnPlateArea_handle);	/* 任务控制块指针 */ 
-// }
-
-// void taskMoveTurnPlateAreaToStorArea_start(void){
-//     	xTaskCreate((TaskFunction_t )  taskMoveTurnPlateAreaToStorArea,  		/* 任务入口函数 */
-// 			  (const char*    )  "MoveTurnPlateAreaToStorArea",	    /* 任务名字 */
-// 			  (uint16_t       )512,  				    /* 任务栈大小 */
-// 			  (void*          )NULL,				    /* 任务入口函数参数 */
-// 			  (UBaseType_t    )4, 					    /* 任务的优先级 */
-// 			  (TaskHandle_t*  )&taskMoveTurnPlateAreaToStorArea_handle);	/* 任务控制块指针 */ 
-// }
-
-// void taskMvBetweenColorCir_start(void){
-// 	xTaskCreate((TaskFunction_t ) taskMvBetweenColorCir,  		/* 任务入口函数 */
-// 			  (const char*    )  "MvBetweenColorCir",	    /* 任务名字 */
-// 			  (uint16_t       )512,  				    /* 任务栈大小 */
-// 			  (void*          )NULL,				    /* 任务入口函数参数 */
-// 			  (UBaseType_t    )4, 					    /* 任务的优先级 */
-// 			  (TaskHandle_t*  )&taskMvBetweenColorCir_handle);	/* 任务控制块指针 */ 
-// }
-
-// void taskMvBetweenColorCir(void* pvParameters){
-// 	((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
-//     uint8_t loop_i = 12;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /200.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-
-// 	stop_all_motor();
-// 	BottomRetuTask(Lo_RoughL_RoughM_1, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_Supply_RoughL_1){
-// 		vTaskDelay(100);
-// 	}
-// 	BottomData.TaskState = 0;
-
-// 	loop_i = 12;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(-1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(-1, 0, -tmp_dw /200.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-
-// 	stop_all_motor();
-// 	BottomRetuTask(Lo_Supply_RoughL_1, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_RoughM_RoughR_1){
-// 		vTaskDelay(100);
-// 	}
-// 	BottomData.TaskState = 0;
-
-// 	vTaskDelay(1500);
-// 	loop_i = 24;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /200.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-// 	stop_all_motor();
-// 	BottomRetuTask(Lo_RoughM_RoughR_1, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_RoughL_RoughM_1){
-// 		vTaskDelay(100);
-// 	}
-
-
-// 	loop_i = 12;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(-1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(-1, 0, -tmp_dw /200.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-
-// 	stop_all_motor();
-// 	BottomRetuTask(Lo_RoughL_RoughM_1, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_Supply_RoughL_1){
-// 		vTaskDelay(100);
-// 	}
-// 	BottomData.TaskState = 0;
-
-// 	loop_i = 12;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(-1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(-1, 0, -tmp_dw /200.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-
-// 	stop_all_motor();
-// 	BottomRetuTask(Lo_Supply_RoughL_1, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_RoughM_RoughR_1){
-// 		vTaskDelay(100);
-// 	}
-// 	BottomData.TaskState = 0;
-
-// 	vTaskDelay(1500);
-// 	loop_i = 24;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /200.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-// 	stop_all_motor();
-// 	BottomRetuTask(Lo_RoughM_RoughR_1, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_RoughL_RoughM_1){
-// 		vTaskDelay(100);
-// 	}
-
+void task_moveSzoneToQRzone(void* pvParameters){
+	taskSta[TASK_moveSzoneToQRzone] = TASK_BUSY_STATE;
+	TranslationMove_PID(1, SZONE_TO_TMPZONE_DIS, -SZONE_TO_TMPZONE_DIS, True);
+	vTaskDelay(100);
+	MoveInLine_PID(1, TMPZONE_TO_QRCODE_DIS ,True);
 	
-// 	vTaskDelete(taskMvBetweenColorCir_handle);
-//     taskEXIT_CRITICAL();
-// }
+	taskSta[TASK_moveSzoneToQRzone] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveSzoneToQRzone_handle);
+    taskEXIT_CRITICAL();
+}
 
-// void taskMoveTurnPlateAreaToStorArea(void* pvParameters){
-//     ((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
-//     vTaskDelay(1000);
-//     uint8_t loop_i = 9;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.2, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /200.0, 0.8, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(200);
-// 	}
-//     vTaskDelay(1000);
-//     Kinematic_Analysis_Pos(0, 0, 1, 0, 1.5126);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
+void task_moveQRzoneToMzone(void* pvParameters){
+	taskSta[TASK_moveQRzoneToMzone] = TASK_BUSY_STATE;
+
+	MoveInLine_PID(1, QRZONE_TO_MZONE_DIS, True);
+	vTaskDelay(100);
+	TranslationMove(UART_CTRL, 1, 0, 0.18f, True);
+	taskSta[TASK_moveQRzoneToMzone] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveQRzoneToMzone_handle);
+    taskEXIT_CRITICAL();
+}
+
+void task_moveMzoneToEzone(void* pvParameters){
+	taskSta[TASK_moveMzoneToEzone] = TASK_BUSY_STATE;
+
+	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
+	vTaskDelay(300);
+	MoveInLine_PID(1, MZONE_TO_FIRCOR_DIS, True);
+	vTaskDelay(100);
+	AntiClockwise_90Angle(UART_CTRL);
+	vTaskDelay(2000);
+	IMU_UART_YawZeroOut();
+	vTaskDelay(500);
+	MoveInLine_PID(1, FIRCOR_TO_EZONE_DIS, False);
+	vTaskDelay(100);
+	TranslationMove(UART_CTRL, 1, 0, 0.2f, True);
+	vTaskDelay(100);
+	taskSta[TASK_moveMzoneToEzone] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveMzoneToEzone_handle);
+    taskEXIT_CRITICAL();
+}
+
+void task_moveEzoneToTzone(void* pvParameters){
+	taskSta[TASK_moveEzoneToTzone] = TASK_BUSY_STATE;
+	vTaskDelay(300);
+	//这里还要计算
+	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
+	vTaskDelay(100);
+	double tmp_ids = (3 - Arr_ABS_ZoneMove[EZONE_SEQ][RingMovSeq][3])*RINGS_BETWEEN_DIS;
+	MoveInLine_PID(1, EZONE_TO_SECCOR_DIS+tmp_ids , True);
+	vTaskDelay(100);
+	AntiClockwise_90Angle(UART_CTRL);
+	vTaskDelay(2000);
+	IMU_UART_YawZeroOut();
+	vTaskDelay(500);
+	MoveInLine_PID(1, SECCOR_TO_TZONE_DIS, False);
+	delay_ms(100);
+	TranslationMove(UART_CTRL, 1, 0, 0.18f, True);
+	taskSta[TASK_moveEzoneToTzone] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveEzoneToTzone_handle);
+    taskEXIT_CRITICAL();
+}
+
+void task_moveTzoneToMzone(void* pvParameters){
+	taskSta[TASK_moveTzoneToMzone] = TASK_BUSY_STATE;
+
+	vTaskDelay(300);
+	TranslationMove(UART_CTRL, 1, 0, -0.18f, True);
+	vTaskDelay(300);
+	double tmp_ids = ((double)Arr_ABS_ZoneMove[TZONE_SEQ][FIRST_SEQ][3]-1)*RINGS_BETWEEN_DIS;
+	MoveInLine_PID(-1,TZONE_TO_SECCOR_DIS + tmp_ids, True);
+	vTaskDelay(100);
+
+	Clockwise_90Angle(UART_CTRL);
+	vTaskDelay(2000);
+	IMU_UART_YawZeroOut();
+	vTaskDelay(500);
+	MoveInLine_PID(-1,SECCOR_TO_FIRCOR_DIS, True);
+	Clockwise_90Angle(UART_CTRL);
+	vTaskDelay(2000);
+	IMU_UART_YawZeroOut();
+	vTaskDelay(500);
+	MoveInLine_PID(-1,FIRCOR_TO_MZONE_DIS, True);
+	TranslationMove(UART_CTRL, 1, 0, 0.2f, True);
+	taskSta[TASK_moveTzoneToMzone] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveTzoneToMzone_handle);
+    taskEXIT_CRITICAL();
+}
+void task_moveTzoneToSzone(void* pvParameters){
+	taskSta[TASK_moveTzoneToSzone] = TASK_BUSY_STATE;
 	
-// 	vTaskDelay(2500);
-// 	stop_all_motor();
-// 	IMU_UART_YawZeroOut();
-// 	vTaskDelay(1000);
-// 	loop_i = 61;
-// 	while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /160.0, 0.2, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(51);
-// 	}
-// 	stop_all_motor();
+	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
+	//这里需要重新计算
+	double tmp_ids = (3-Arr_ABS_ZoneMove[TZONE_SEQ][SECOND_SEQ][3])*RINGS_BETWEEN_DIS;
+	MoveInLine_PID(1, TZONE_TO_THIRCOR_DIS + tmp_ids, True);
+	vTaskDelay(100);
 
-// 	Kinematic_Analysis_Pos(0, 1, 0, 0.22, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 	vTaskDelay(630);
+	AntiClockwise_90Angle(UART_CTRL);
+	vTaskDelay(2000);
+	IMU_UART_YawZeroOut();
+	vTaskDelay(500);
+	MoveInLine_PID(1, THIRCOR_DIS_TO_TMPZONE_DIS, True);
+	TranslationMove_PID(1,TMPZONE_TO_SZONE_X_DIS,TMPZONE_TO_SZONE_Y_DIS, True);
+	AntiClockwise_90Angle(UART_CTRL);
+	vTaskDelay(2000);
 
-// 	taskMvBetweenColorCir_start();
-// 	vTaskDelete(taskMoveTurnPlateAreaToStorArea_handle);
-//     taskEXIT_CRITICAL();
-// }
+	taskSta[TASK_moveTzoneToSzone] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveTzoneToSzone_handle);
+    taskEXIT_CRITICAL();
+}
 
-// void taskMoveQRAreaToTurnPlateArea(void* pvParameters){
-//     ((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
-//     uint8_t loop_i = 14;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.2, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /200.0, 0.8, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(200);
-// 	}
-// 	vTaskDelay(1000);
-// 	Kinematic_Analysis_Pos(0, 1, 0, 0.1, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 	vTaskDelay(630);
-// 	stop_all_motor();
+void task_moveContorCricle(void* pvParameters){
+	taskSta[TASK_moveContorCricle] = TASK_BUSY_STATE;
 
-// 	BottomRetuTask(Lo_QRcode_Supply, FinishTask_Sta);
-// 	vTaskDelay(300);
-// 	LED[1]->on(LED[1]);
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_RoughL_RoughM_1){
-// 		vTaskDelay(100);
-// 		LED[0]->reverse(LED[0]);
-// 	}
-// 	BottomData.TaskState = 0;
+	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS, 0, True);
+	vTaskDelay(1000);
 
-//     taskMoveTurnPlateAreaToStorArea_start();
-//     vTaskDelete(taskMoveQRAreaToTurnPlateArea_handle);
-//     taskEXIT_CRITICAL();
-// }
+	taskSta[TASK_moveContorCricle] = TASK_IDLE_STATE;
+	vTaskDelete(task_moveContorCricle_handle);
+    taskEXIT_CRITICAL();
+}
 
-// void taskMoveStaAreaToQRArea(void* pvParameters){
-//     ((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
-//     vTaskDelay(3000);
-//     uint8_t loop_i = 13*4 - 1;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(1, 0, 0, 0.05, 0);
-// 		else Kinematic_Analysis_Pos(1, 0, -tmp_dw /200.0, 0.8, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(50);
-// 	}
-// 	stop_all_motor();
+//0-1   fe
+//1-2  
+//2-3
+//3-4   
+//4-5	
+//5-6	 
+//6-7 ft
+//7-8  
+//8-9
+//9-10  
+//10-11
+//11-12
+//12-13
+//13-14
 
-// 	BottomRetuTask(Lo_zero_QRcode, FinishTask_Sta);
+void task_moveBetweenCricle(void* pvParameters){
+	taskSta[TASK_moveBetweenCricle] = TASK_BUSY_STATE;
+	
+	RingMovSeq  = (RingMovCount_total / 9) & 0x01;
+	
+	if(RingMovCount_total == 0){
+		RingMovZone = 0;
+		RingMovCount = 0;
+		CalMovBetweenRings(RingMovZone, RingMovSeq, 2);
+	}else if(RingMovCount_total == 6){
+		RingMovZone = 1;
+		RingMovCount = 0;
+		CalMovBetweenRings(RingMovZone, RingMovSeq, 2);
+	}
+	else if(RingMovCount_total == 9) {
+		RingMovZone = 0;
+		RingMovCount = 0;
+		CalMovBetweenRings(RingMovZone, RingMovSeq, 1);
+	}else if( RingMovCount_total == 15){
+		RingMovZone = 1;
+		RingMovCount = 0;
+		CalMovBetweenRings(RingMovZone, RingMovSeq, 1);
+	}else{
+		RingMovCount++;
+	}
 
-// 	while (BottomData.TaskState != StartTask_Sta || BottomData.TaskNum != Lo_QRcode_Supply){
-// 		vTaskDelay(100);
-// 		LED[0]->reverse(LED[0]);
-// 	}
-// 	BottomData.TaskState = 0;
+	int8_t tmp_i = Arr_REL_ZoneMove[RingMovZone][RingMovSeq][RingMovCount];
+	
+	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS * tmp_i, 0, True);
+	vTaskDelay(2400);
 
-//     taskMoveQRAreaToTurnPlateArea_start();
-//     vTaskDelete(taskMoveStaAreaToQRArea_handle);
-//     taskEXIT_CRITICAL();
-// }
+	RingMovCount_total++;
+	taskSta[TASK_moveBetweenCricle] = TASK_IDLE_STATE;
+	vTaskDelete(task_moveBetweenCricle_handle);
+    taskEXIT_CRITICAL();
+}
+
+void task_moveXYPosition(void* pvParameters){
+	taskSta[TASK_moveXYPosition] = TASK_BUSY_STATE;
+
+	//调整xy位置
+	//320*240   160 120
+	//160*120  80    60
+	//AdjustXYPostion(160, 120, True);
+	vTaskDelay(2000);
+	taskSta[TASK_moveXYPosition] = TASK_IDLE_STATE ;
+	vTaskDelete(task_moveXYPosition_handle);
+    taskEXIT_CRITICAL();
+}
 
 
-// void taskMoveDriveOut(void* pvParameters){	
-//     ((pStruct_PID)tmp_pid[0])->setPar(tmp_pid[0], 5, 0, 0);
-//     vTaskDelay(3000);
-//     uint8_t loop_i = 8;
-//     while (loop_i--) {
-// 		double yaw = HWT101_Struct.YawAngle;
-// 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
-// 		if(_abs(tmp_dw) > 160) tmp_dw = 160 *_sign(tmp_dw);
-// 		if(loop_i == 0) Kinematic_Analysis_Pos(0.7071/2, -0.7071/2, 0, 0.1, 0);
-// 		else Kinematic_Analysis_Pos(0.7071/2, -0.7071/2, -tmp_dw /200.0, 0.4, 0);
-// 		if(vel_weel[0] > 0)
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[0]), 0, (uint32_t)(800*pos_weel[0]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, True);
-// 		if(vel_weel[1] > 0)
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[1]), 0, (uint32_t)(800*pos_weel[1]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, True);
-// 		if(vel_weel[2] > 0)
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[2]), 0, (uint32_t)(800*pos_weel[2]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, True);
-// 		if(vel_weel[3] > 0)
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, (uint32_t)(800*vel_weel[3]), 0, (uint32_t)(800*pos_weel[3]), False, True);
-// 		else
-// 			MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, True);
-// 		vTaskDelay(200);
-// 	}
-// 	stop_all_motor();
-//     taskMoveStaAreaToQRArea_start();
-//     vTaskDelete(taskMoveDriveOut_handle);
-//     taskEXIT_CRITICAL();
-// }  
-
+void USART6_IRQHandler(void){
+	if(USART_GetITStatus(USART6,USART_IT_IDLE)!=RESET){		
+		DMA_Cmd(DMA2_Stream1, DISABLE); /* 关闭DMA ，防止干扰 */ 
+		uint16_t reDataLenth = DMA_GetCurrDataCounter(DMA2_Stream1);
+		if(reDataLenth==0&&BottomData.RxBuff[0]==0x66&&BottomData.RxBuff[COM_MSG_LEN-1]==0x88){	 
+          
+            switch (BottomData.RxBuff[1]){
+            // case 0xA1:
+            //     if(BottomData.RxBuff[2] == 0xD4){
+			// 		  replyRecCarrySta();
+			// 	}else if(BottomData.RxBuff[2] == 0xE5) replyRecEzoneRingSta();
+            //     else if(BottomData.RxBuff[2] == 0xF6) replyRecTzoneRingSta();
+            //     break;
+            case 0xB2:
+                if(BottomData.RxBuff[2]!= 0 && taskSta[BottomData.RxBuff[2]] != TASK_BUSY_STATE){
+			        taskSta[BottomData.RxBuff[2]] = TASK_BUSY_STATE;
+			        BottomData.needStartTask = BottomData.RxBuff[2];
+                }
+                break;
+            case 0xC3://查询任务状态
+                BottomData.needRelyTask = BottomData.RxBuff[2];
+                //replyCurTaskStatus(BottomData.RxBuff[2]);
+                break;
+            case 0xD4://搬运顺序
+                Arr_CarryColorSeq[FIRST_SEQ][1] = BottomData.RxBuff[2];
+				Arr_CarryColorSeq[FIRST_SEQ][2] = BottomData.RxBuff[3];
+				Arr_CarryColorSeq[FIRST_SEQ][3] = BottomData.RxBuff[4];
+                Arr_CarryColorSeq[SECOND_SEQ][1] = BottomData.RxBuff[5];
+				Arr_CarryColorSeq[SECOND_SEQ][2] = BottomData.RxBuff[6];
+				Arr_CarryColorSeq[SECOND_SEQ][3] = BottomData.RxBuff[7];
+                BottomData.sta_CarrySeq = 1;
+				replyRecCarrySta();
+                break;
+            case 0xE5://粗放顺序
+                Arr_ZoneColorSeq[EZONE_SEQ][1] = BottomData.RxBuff[2];
+				Arr_ZoneColorSeq[EZONE_SEQ][2] = BottomData.RxBuff[3];
+				Arr_ZoneColorSeq[EZONE_SEQ][3] = BottomData.RxBuff[4];
+                BottomData.sta_EzoneSeq = 1;
+				replyRecEzoneRingSta();
+                break;
+            case 0xF6://暂存顺序
+				Arr_ZoneColorSeq[TZONE_SEQ][1] = BottomData.RxBuff[2];
+				Arr_ZoneColorSeq[TZONE_SEQ][2] = BottomData.RxBuff[3];
+                Arr_ZoneColorSeq[TZONE_SEQ][3] = BottomData.RxBuff[4];
+                BottomData.sta_TzoneSeq = 1;
+				replyRecTzoneRingSta();
+                break;
+            default:
+                memset(BottomData.RxBuff,0,sizeof(BottomData.RxBuff));
+                break;
+            }
+        }
+		DMA2_Stream1->NDTR = COM_MSG_LEN;
+		DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1);  /* 清DMA标志位 */
+		DMA_Cmd(DMA2_Stream1, ENABLE);      
+		USART_ClearFlag(USART6, USART_FLAG_TC); //清除发送完成标志
+		USART_ReceiveData(USART6);// 清除空闲中断标志位
+	}
+}
 
 #endif  //BOTTOM_LEVEL

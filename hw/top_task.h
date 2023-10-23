@@ -23,24 +23,33 @@
 #include"CarTaskConfig.h"
 
 
-static TaskHandle_t taskStart_handle  = NULL;
-static TaskHandle_t taskLed_handle = NULL;
-static TaskHandle_t taskQrcodeIdentify_handle = NULL;
-static TaskHandle_t taskManCrawl_handle = NULL;
-static TaskHandle_t taskPutItem_handle =NULL;
+static TaskHandle_t task_taskSchedule_handle            = NULL;
+static TaskHandle_t task_comUart_handle                 = NULL;
+static TaskHandle_t task_identifyQRcode_handle          = NULL;
+static TaskHandle_t task_identify_grab_Material_handle  = NULL;
+static TaskHandle_t task_indetifyCrileColor_handle      = NULL;
+static TaskHandle_t task_grabMaterial_handle            = NULL;
+static TaskHandle_t task_putMaterial_handle             = NULL;
+
 
 void bsp_init(void);
+void task_switch(uint8_t task_name);
 
-void taskStart_start(void);
-void taskLed_start(void);
-void taskQrcodeIdentify_start(void);
-void taskPutItem_start(void);
+void task_taskSchedule_start(void);
+void task_comUart_start(void);
+void task_identifyQRcode_start(void);
+void task_identify_grab_Material_start(void);
+void task_indetifyCrileColor_start(void);
+void task_grabMaterial_start(void);
+void task_putMaterial_start(void);
 
-void taskStart(void* pvParameters); 
-void taskLed(void* pvParameters); 
-void taskQRcodeIdentify(void* pvParameters);  
-void taskManCrawl(void* pvParameters);
-void taskPutItem(void* pvParameters);
+void task_taskSchedule(void* pvParameters);
+void task_comUart(void* pvParameters);
+void task_identifyQRcode(void* pvParameters);
+void task_identify_grab_Material(void* pvParameters);
+void task_indetifyCrileColor(void* pvParameters);
+void task_grabMaterial(void* pvParameters);
+void task_putMaterial(void* pvParameters);
 
 
 #endif //TOP_LEVEL

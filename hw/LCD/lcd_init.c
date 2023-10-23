@@ -4,26 +4,27 @@
 void LCD_GPIO_Init(void){
   	GPIO_InitTypeDef  GPIO_InitStructure;
 	
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);//使能PORTA~E,PORTG时钟
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);//ʹ��PORTA~E,PORTGʱ��
   	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5;
-  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
- 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//��ͨ���ģʽ
+ 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//�������
   	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
-  	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
-  	GPIO_Init(GPIOF, &GPIO_InitStructure);//初始化
+  	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//����
+  	GPIO_Init(GPIOF, &GPIO_InitStructure);//��ʼ��
   	GPIO_SetBits(GPIOF,GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5);
 
 }
 
 
+
 /******************************************************************************
-      函数说明：LCD串行数据写入函数
-      入口数据：dat  要写入的串行数据
-      返回值：  无
+      ����˵����LCD��������д�뺯��
+      ������ݣ�dat  Ҫд��Ĵ�������
+      ����ֵ��  ��
 ******************************************************************************/
-void LCD_Writ_Bus(uint8_t dat) 
+void LCD_Writ_Bus(u8 dat) 
 {	
-	uint8_t i;
+	u8 i;
 	LCD_CS_Clr();
 	for(i=0;i<8;i++)
 	{			  
@@ -44,22 +45,22 @@ void LCD_Writ_Bus(uint8_t dat)
 
 
 /******************************************************************************
-      函数说明：LCD写入数据
-      入口数据：dat 写入的数据
-      返回值：  无
+      ����˵����LCDд������
+      ������ݣ�dat д�������
+      ����ֵ��  ��
 ******************************************************************************/
-void LCD_WR_DATA8(uint8_t dat)
+void LCD_WR_DATA8(u8 dat)
 {
 	LCD_Writ_Bus(dat);
 }
 
 
 /******************************************************************************
-      函数说明：LCD写入数据
-      入口数据：dat 写入的数据
-      返回值：  无
+      ����˵����LCDд������
+      ������ݣ�dat д�������
+      ����ֵ��  ��
 ******************************************************************************/
-void LCD_WR_DATA(uint16_t dat)
+void LCD_WR_DATA(u16 dat)
 {
 	LCD_Writ_Bus(dat>>8);
 	LCD_Writ_Bus(dat);
@@ -67,166 +68,138 @@ void LCD_WR_DATA(uint16_t dat)
 
 
 /******************************************************************************
-      函数说明：LCD写入命令
-      入口数据：dat 写入的命令
-      返回值：  无
+      ����˵����LCDд������
+      ������ݣ�dat д�������
+      ����ֵ��  ��
 ******************************************************************************/
-void LCD_WR_REG(uint8_t dat)
+void LCD_WR_REG(u8 dat)
 {
-	LCD_DC_Clr();//写命令
+	LCD_DC_Clr();//д����
 	LCD_Writ_Bus(dat);
-	LCD_DC_Set();//写数据
+	LCD_DC_Set();//д����
 }
 
 
 /******************************************************************************
-      函数说明：设置起始和结束地址
-      入口数据：x1,x2 设置列的起始和结束地址
-                y1,y2 设置行的起始和结束地址
-      返回值：  无
+      ����˵����������ʼ�ͽ�����ַ
+      ������ݣ�x1,x2 �����е���ʼ�ͽ�����ַ
+                y1,y2 �����е���ʼ�ͽ�����ַ
+      ����ֵ��  ��
 ******************************************************************************/
-void LCD_Address_Set(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2)
+void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 {
-	if(USE_HORIZONTAL==0)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+2);
-		LCD_WR_DATA(x2+2);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+1);
-		LCD_WR_DATA(y2+1);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else if(USE_HORIZONTAL==1)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+2);
-		LCD_WR_DATA(x2+2);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+1);
-		LCD_WR_DATA(y2+1);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else if(USE_HORIZONTAL==2)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+1);
-		LCD_WR_DATA(x2+1);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+2);
-		LCD_WR_DATA(y2+2);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+1);
-		LCD_WR_DATA(x2+1);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+2);
-		LCD_WR_DATA(y2+2);
-		LCD_WR_REG(0x2c);//储存器写
-	}
+		LCD_WR_REG(0x2a);//�е�ַ����
+		LCD_WR_DATA(x1);
+		LCD_WR_DATA(x2);
+		LCD_WR_REG(0x2b);//�е�ַ����
+		LCD_WR_DATA(y1);
+		LCD_WR_DATA(y2);
+		LCD_WR_REG(0x2c);//������д
 }
 
 void LCD_Init(void)
 {
-	LCD_GPIO_Init();//初始化GPIO
+	LCD_GPIO_Init();//��ʼ��GPIO
 	
-	LCD_RES_Clr();//复位
-	
-	led_delay_ms(100);
+	LCD_RES_Clr();//��λ
+	delay_xms(100);
 	LCD_RES_Set();
-	led_delay_ms(100);
+	delay_xms(100);
 	
-	LCD_BLK_Set();//打开背光
-    led_delay_ms(100);
+	LCD_BLK_Set();//�򿪱���
+  	delay_xms(100);
 	
 	//************* Start Initial Sequence **********//
 	LCD_WR_REG(0x11); //Sleep out 
-	led_delay_ms(120);              //Delay 120ms 
-	//------------------------------------ST7735S Frame Rate-----------------------------------------// 
-	LCD_WR_REG(0xB1); 
-	LCD_WR_DATA8(0x05); 
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_REG(0xB2); 
+	delay_xms(120);              //Delay 120ms 
+	//************* Start Initial Sequence **********// 
+	LCD_WR_REG(0xCF);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0xC1);
+	LCD_WR_DATA8(0X30);
+	LCD_WR_REG(0xED);
+	LCD_WR_DATA8(0x64);
+	LCD_WR_DATA8(0x03);
+	LCD_WR_DATA8(0X12);
+	LCD_WR_DATA8(0X81);
+	LCD_WR_REG(0xE8);
+	LCD_WR_DATA8(0x85);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0x79);
+	LCD_WR_REG(0xCB);
+	LCD_WR_DATA8(0x39);
+	LCD_WR_DATA8(0x2C);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0x34);
+	LCD_WR_DATA8(0x02);
+	LCD_WR_REG(0xF7);
+	LCD_WR_DATA8(0x20);
+	LCD_WR_REG(0xEA);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_REG(0xC0); //Power control
+	LCD_WR_DATA8(0x1D); //VRH[5:0]
+	LCD_WR_REG(0xC1); //Power control
+	LCD_WR_DATA8(0x12); //SAP[2:0];BT[3:0]
+	LCD_WR_REG(0xC5); //VCM control
+	LCD_WR_DATA8(0x33);
+	LCD_WR_DATA8(0x3F);
+	LCD_WR_REG(0xC7); //VCM control
+	LCD_WR_DATA8(0x92);
+	LCD_WR_REG(0x3A); // Memory Access Control
+	LCD_WR_DATA8(0x55);
+	LCD_WR_REG(0x36); // Memory Access Control
+	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x08);
+	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC8);
+	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x78);
+	else LCD_WR_DATA8(0xA8);
+	LCD_WR_REG(0xB1);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0x12);
+	LCD_WR_REG(0xB6); // Display Function Control
+	LCD_WR_DATA8(0x0A);
+	LCD_WR_DATA8(0xA2);
+
+	LCD_WR_REG(0x44);
+	LCD_WR_DATA8(0x02);
+
+	LCD_WR_REG(0xF2); // 3Gamma Function Disable
+	LCD_WR_DATA8(0x00);
+	LCD_WR_REG(0x26); //Gamma curve selected
+	LCD_WR_DATA8(0x01);
+	LCD_WR_REG(0xE0); //Set Gamma
+	LCD_WR_DATA8(0x0F);
+	LCD_WR_DATA8(0x22);
+	LCD_WR_DATA8(0x1C);
+	LCD_WR_DATA8(0x1B);
+	LCD_WR_DATA8(0x08);
+	LCD_WR_DATA8(0x0F);
+	LCD_WR_DATA8(0x48);
+	LCD_WR_DATA8(0xB8);
+	LCD_WR_DATA8(0x34);
 	LCD_WR_DATA8(0x05);
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_REG(0xB3); 
-	LCD_WR_DATA8(0x05); 
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_DATA8(0x05); 
-	LCD_WR_DATA8(0x3C); 
-	LCD_WR_DATA8(0x3C); 
-	//------------------------------------End ST7735S Frame Rate---------------------------------// 
-	LCD_WR_REG(0xB4); //Dot inversion 
-	LCD_WR_DATA8(0x03); 
-	//------------------------------------ST7735S Power Sequence---------------------------------// 
-	LCD_WR_REG(0xC0); 
-	LCD_WR_DATA8(0x28); 
-	LCD_WR_DATA8(0x08); 
-	LCD_WR_DATA8(0x04); 
-	LCD_WR_REG(0xC1); 
-	LCD_WR_DATA8(0XC0); 
-	LCD_WR_REG(0xC2); 
-	LCD_WR_DATA8(0x0D); 
-	LCD_WR_DATA8(0x00); 
-	LCD_WR_REG(0xC3); 
-	LCD_WR_DATA8(0x8D); 
-	LCD_WR_DATA8(0x2A); 
-	LCD_WR_REG(0xC4); 
-	LCD_WR_DATA8(0x8D); 
-	LCD_WR_DATA8(0xEE); 
-	//---------------------------------End ST7735S Power Sequence-------------------------------------// 
-	LCD_WR_REG(0xC5); //VCOM 
-	LCD_WR_DATA8(0x1A); 
-	LCD_WR_REG(0x36); //MX, MY, RGB mode 
-	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x00);
-	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC0);
-	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x70);
-	else LCD_WR_DATA8(0xA0); 
-	//------------------------------------ST7735S Gamma Sequence---------------------------------// 
-	LCD_WR_REG(0xE0); 
-	LCD_WR_DATA8(0x04); 
-	LCD_WR_DATA8(0x22); 
-	LCD_WR_DATA8(0x07); 
-	LCD_WR_DATA8(0x0A); 
-	LCD_WR_DATA8(0x2E); 
-	LCD_WR_DATA8(0x30); 
-	LCD_WR_DATA8(0x25); 
-	LCD_WR_DATA8(0x2A); 
-	LCD_WR_DATA8(0x28); 
-	LCD_WR_DATA8(0x26); 
-	LCD_WR_DATA8(0x2E); 
-	LCD_WR_DATA8(0x3A); 
-	LCD_WR_DATA8(0x00); 
-	LCD_WR_DATA8(0x01); 
-	LCD_WR_DATA8(0x03); 
-	LCD_WR_DATA8(0x13); 
-	LCD_WR_REG(0xE1); 
-	LCD_WR_DATA8(0x04); 
-	LCD_WR_DATA8(0x16); 
-	LCD_WR_DATA8(0x06); 
-	LCD_WR_DATA8(0x0D); 
-	LCD_WR_DATA8(0x2D); 
-	LCD_WR_DATA8(0x26); 
-	LCD_WR_DATA8(0x23); 
-	LCD_WR_DATA8(0x27); 
-	LCD_WR_DATA8(0x27); 
-	LCD_WR_DATA8(0x25); 
-	LCD_WR_DATA8(0x2D); 
-	LCD_WR_DATA8(0x3B); 
-	LCD_WR_DATA8(0x00); 
-	LCD_WR_DATA8(0x01); 
-	LCD_WR_DATA8(0x04); 
-	LCD_WR_DATA8(0x13); 
-	//------------------------------------End ST7735S Gamma Sequence-----------------------------// 
-	LCD_WR_REG(0x3A); //65k mode 
-	LCD_WR_DATA8(0x05); 
-	LCD_WR_REG(0x29); //Display on 
+	LCD_WR_DATA8(0x0C);
+	LCD_WR_DATA8(0x09);
+	LCD_WR_DATA8(0x0F);
+	LCD_WR_DATA8(0x07);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_REG(0XE1); //Set Gamma
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0x23);
+	LCD_WR_DATA8(0x24);
+	LCD_WR_DATA8(0x07);
+	LCD_WR_DATA8(0x10);
+	LCD_WR_DATA8(0x07);
+	LCD_WR_DATA8(0x38);
+	LCD_WR_DATA8(0x47);
+	LCD_WR_DATA8(0x4B);
+	LCD_WR_DATA8(0x0A);
+	LCD_WR_DATA8(0x13);
+	LCD_WR_DATA8(0x06);
+	LCD_WR_DATA8(0x30);
+	LCD_WR_DATA8(0x38);
+	LCD_WR_DATA8(0x0F);
+	LCD_WR_REG(0x29); //Display on
 } 
 
 

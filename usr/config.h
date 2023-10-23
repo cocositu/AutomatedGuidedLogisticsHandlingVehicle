@@ -3,8 +3,8 @@
 
 #define STM32_STD_DRVER 
 #define STEPPER_MOTOR_DRIVER
-//#define TOP_LEVEL
-#define BOTTOM_LEVEL
+#define TOP_LEVEL
+//#define BOTTOM_LEVEL
 
 #ifdef  STM32_STD_DRVER
 
@@ -23,6 +23,9 @@
 
 #define PI                   (3.1415926535f)
 
+#define CARRY_RED       1
+#define CARRY_GREEN     2
+#define CARRY_BLUE      3
 
 typedef unsigned char uint8_t;
 typedef uint8_t bool;

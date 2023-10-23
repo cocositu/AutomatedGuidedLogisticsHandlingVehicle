@@ -8,6 +8,24 @@
 #define STEPS_LOOP_MAXNUM           400
 #define STEPS_UART_BUFFER_LENTH     13   
 #define sendMotorTim_Once(...)      Fun_En_DMA_Motor(__VA_ARGS__)
+
+
+#define SZONE_TO_TMPZONE_DIS    0.6272f
+#define TMPZONE_TO_QRCODE_DIS   2.468f
+#define QRZONE_TO_MZONE_DIS     2.7715f
+#define MZONE_TO_FIRCOR_DIS     1.7195f
+#define FIRCOR_TO_EZONE_DIS     2.9535f
+#define RINGS_BETWEEN_DIS       0.607f
+#define EZONE_TO_SECCOR_DIS     2.1645f
+#define SECCOR_TO_TZONE_DIS     2.730f
+#define TZONE_TO_SECCOR_DIS     2.730f
+#define SECCOR_TO_FIRCOR_DIS    6.3925f
+#define FIRCOR_TO_MZONE_DIS     1.7195f
+#define TZONE_TO_THIRCOR_DIS    3.3378f
+#define THIRCOR_DIS_TO_TMPZONE_DIS  5.4821f
+#define TMPZONE_TO_SZONE_X_DIS  1.5575f
+#define TMPZONE_TO_SZONE_Y_DIS  0.324f
+
 typedef enum _MOTOR_UART_ADDR_ENUM{
     MOTOR_ALL_ADDR = 0x00,
     MOTOR_LF_ADDR = 0x01,
@@ -83,6 +101,9 @@ void pid_init(void);
 void MoveInLine_PID(double vel, double dsitance, bool isOSTime);
 void TranslationMove(MOTOR_TYPE_ENUM Motor_ctrl, double V, double Dx, double Dy, bool isOSTime);
 void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime);
+void AdjustXYPostion(int t_x, int t_y, bool isOSTime);
+
+
 #endif //STEPPER_MOTOR_DRIVER
 #endif //_MOTOR_DRIVER_H_
 

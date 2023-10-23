@@ -1,5 +1,6 @@
 #include"QRcode.h"
 #ifdef TOP_LEVEL
+#include"lcd.h"
 #include"string.h"
 #define QRCODE_MSG_LEN	7
 QRCode_MSG_Sturct QRCode={0};
@@ -68,5 +69,33 @@ void QRCODE_IRQHandler(void){
   	} 
 }
 
+void showQRCodeMessage(char QRcode[]){
+	int med_lcd  = 76;//240/2 - 88/2;
+	int septal = 88/2;
+	int init_compen = 6; 
+	uint16_t FRONT_COLOR = WHITE;
+	if(QRcode[7] != '\0' && QRcode[3] == '+'){
+		return;
+	}
+	for (uint8_t i = 0; i < 7; ++i){
+		switch (QRcode[i]){
+		case '1':
+			FRONT_COLOR = RED;
+			break;
+		case '2':
+			FRONT_COLOR = GREEN;
+			break;
+		case '3':
+			FRONT_COLOR = BLUE;
+			break;
+		default:
+			FRONT_COLOR = WHITE;
+		}
+		LCD_ShowChar(init_compen+i*septal, med_lcd, QRcode[i] , FRONT_COLOR, BLACK, 88, 0);
+	}
+	memset(QRCode.MSG_Buff, 0, sizeof(QRCode.MSG_Buff));
+	QRCode.GetITSta = 0;
+	QRCode.MSG_CNT  = 0;
+}
 
 #endif //TOP_LEVEL

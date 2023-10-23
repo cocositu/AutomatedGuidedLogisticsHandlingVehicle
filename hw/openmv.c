@@ -43,6 +43,7 @@ void ToOpenMV_uart_init(uint32_t bound){
 }
 
 void OV_SendData(char DataByte){
+	OV_Struct.TaskNum = DataByte;
 	USART_ClearFlag(ToOPENMV_UART, USART_FLAG_TC);	
 	USART_SendData(ToOPENMV_UART, DataByte);
     while(USART_GetFlagStatus(ToOPENMV_UART, USART_FLAG_TC) == 0);

@@ -11,6 +11,6 @@ typedef struct _QRcode_struct{
 
 extern QRCode_MSG_Sturct QRCode;
 void QR_uart_init(uint32_t bound);
-
+void showQRCodeMessage(char QRcode[]);
 
 #endif //_QRCODE_H_

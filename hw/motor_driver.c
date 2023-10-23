@@ -7,6 +7,7 @@
 #include"KinematicModel.h"
 #include"stdlib.h"
 #include"math.h"
+
 #ifdef BOTTOM_LEVEL
 #ifdef STEPPER_MOTOR_DRIVER
 
@@ -17,6 +18,7 @@
 #define Max_RealVel     2400
 
 Arr_pStruct_Pos_PID tmp_pid = NULL;
+Arr_pStruct_Pos_PID xy_pid = NULL;
 
 StepBufferType StepMotorBuffer[4][STEPS_LOOP_MAXNUM+1];
 StepBufferType *StepMotorLFBuffer = StepMotorBuffer[MOTOR_LF_ADDR-1];
@@ -972,17 +974,19 @@ void stop_all_motor(void){
 void AntiClockwise_90Angle(MOTOR_TYPE_ENUM Motor_ctrl){
     switch (Motor_ctrl){
     case UART_CTRL:
-        MotorUartCtrl(MOTOR_LF_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1214, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_LR_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1214, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RF_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1214, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RR_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1214, REL_FLAG, False);
+    //1214
+        MotorUartCtrl(MOTOR_LF_ADDR,  MOTOR_REVERSE, 0x52, 0x80, 1217, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR,  MOTOR_REVERSE, 0x52, 0x80, 1217, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR,  MOTOR_FORWARD, 0x52, 0x80, 1217, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR,  MOTOR_FORWARD, 0x52, 0x80, 1217, REL_FLAG, False);
 	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
         break;
     case TIM_CTRL:
-        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 800, 0, 1214, False, False);
-	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 800, 0, 1214, False, False);
-	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, 1214, False, False);
-	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 1214, False, False);
+    //1214
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 800, 0, 1217, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 800, 0, 1217, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, 1217, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 1217, False, False);
         sendMotorTim_Once(MOTOR_ALL_ADDR);
         break;
     }
@@ -992,17 +996,19 @@ void AntiClockwise_90Angle(MOTOR_TYPE_ENUM Motor_ctrl){
 void Clockwise_90Angle(MOTOR_TYPE_ENUM Motor_ctrl){
     switch (Motor_ctrl){
     case UART_CTRL:
-        MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1211, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1211, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1211, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1211, REL_FLAG, False);
+    //1211
+        MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1211 + 3, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1211 + 3, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1211 + 3, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1211 + 3, REL_FLAG, False);
 	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
         break;
     case TIM_CTRL:
-        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, 1210, False, False);
-	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, 1210, False, False);
-	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 800, 0, 1210, False, False);
-	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, 1210, False, False);
+    //1211
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, 1210 + 4, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, 1210 + 4, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 800, 0, 1210 + 4, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, 1210 + 4, False, False);
         sendMotorTim_Once(MOTOR_ALL_ADDR);
         break;
     }
@@ -1011,17 +1017,19 @@ void Clockwise_90Angle(MOTOR_TYPE_ENUM Motor_ctrl){
 void AntiClockwise_180Angle(MOTOR_TYPE_ENUM Motor_ctrl){
     switch (Motor_ctrl){
     case UART_CTRL:
-        MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1214*2, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 0x40, 0x60, 1214*2, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1214*2, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 0x40, 0x60, 1214*2, REL_FLAG, False);
+    //1214
+        MotorUartCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 0x40, 0x60, (1214+3)*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 0x40, 0x60, (1214+3)*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 0x40, 0x60, (1214+3)*2, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 0x40, 0x60, (1214+3)*2, REL_FLAG, False);
 	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
         break;
     case TIM_CTRL:
-        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 800, 0, 1214*2+1, False, False);
-	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 800, 0, 1214*2+1, False, False);
-	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, 1214*2+1, False, False);
-	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, 1214*2+1, False, False);
+    //1214
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_REVERSE, 800, 0, (1214+3)*2+1, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_REVERSE, 800, 0, (1214+3)*2+1, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_FORWARD, 800, 0, (1214+3)*2+1, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_FORWARD, 800, 0, (1214+3)*2+1, False, False);
         sendMotorTim_Once(MOTOR_ALL_ADDR);
         break;
     }
@@ -1031,17 +1039,18 @@ void AntiClockwise_180Angle(MOTOR_TYPE_ENUM Motor_ctrl){
 void Clockwise_180Angle(MOTOR_TYPE_ENUM Motor_ctrl){
     switch (Motor_ctrl){
     case UART_CTRL:
-        MotorUartCtrl(MOTOR_LF_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1211*2, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_LR_ADDR,  MOTOR_FORWARD, 0x40, 0x60, 1211*2, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RF_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1211*2, REL_FLAG, False);
-	    MotorUartCtrl(MOTOR_RR_ADDR,  MOTOR_REVERSE, 0x40, 0x60, 1211*2, REL_FLAG, False);
+    //1213
+        MotorUartCtrl(MOTOR_LF_ADDR,  MOTOR_FORWARD, 0x40, 0x60, (1211+3)*2+1, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_LR_ADDR,  MOTOR_FORWARD, 0x40, 0x60, (1211+3)*2+1, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RF_ADDR,  MOTOR_REVERSE, 0x40, 0x60, (1211+3)*2+1, REL_FLAG, False);
+	    MotorUartCtrl(MOTOR_RR_ADDR,  MOTOR_REVERSE, 0x40, 0x60, (1211+3)*2+1, REL_FLAG, False);
 	    sendMotorUart_Once(MOTOR_ALL_ADDR, STEPS_UART_BUFFER_LENTH);
         break;
     case TIM_CTRL:
-        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, 1211*2, False, False);
-	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, 1211*2, False, False);
-	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 800, 0, 1211*2, False, False);
-	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, 1211*2, False, False);
+        MotorTIMCtrl(MOTOR_LF_ADDR, MOTOR_FORWARD, 800, 0, (1211+3)*2-1, False, False);
+	    MotorTIMCtrl(MOTOR_LR_ADDR, MOTOR_FORWARD, 800, 0, (1211+3)*2-1, False, False);
+	    MotorTIMCtrl(MOTOR_RF_ADDR, MOTOR_REVERSE, 800, 0, (1211+3)*2-1, False, False);
+	    MotorTIMCtrl(MOTOR_RR_ADDR, MOTOR_REVERSE, 800, 0, (1211+3)*2-1, False, False);
         sendMotorTim_Once(MOTOR_ALL_ADDR);
         break;
     }
@@ -1049,6 +1058,7 @@ void Clockwise_180Angle(MOTOR_TYPE_ENUM Motor_ctrl){
 
 void pid_init(void){
      tmp_pid = create_PosPIDStructure(1);
+     xy_pid  = create_PosPIDStructure(2);
 }
 
 void MoveInLine_PID(double vel, double distance, bool isOSTime){
@@ -1059,10 +1069,10 @@ void MoveInLine_PID(double vel, double distance, bool isOSTime){
 		double yaw = HWT101_Struct.YawAngle;
 		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
 		if(_abs(tmp_dw) > 200) tmp_dw = 200 *_sign(tmp_dw);
-        if(i == loop_i && vel < 0) Kinematic_Analysis_Pos(vel-0.6, 0, 0, (re+0.05)*_sign_f(vel), 0,0);
-		else if(i == loop_i) Kinematic_Analysis_Pos(vel, 0, 0, re*_sign_f(vel), 0,0);
-        else if (i % 2 == 0 && vel>0) Kinematic_Analysis_Pos(vel, 0.0075 ,-tmp_dw /100.0, 0.4*_sign_f(vel), 0.1, 0.1*_sign_f(-tmp_dw));
-        else if (i % 2 == 0 && vel<0) Kinematic_Analysis_Pos(vel, 0.0075 ,-tmp_dw /100.0, 0.4*_sign_f(vel), 0.1, 0.1*_sign_f(-tmp_dw));
+        //if(i == loop_i && vel < 0) Kinematic_Analysis_Pos(vel-0.6, 0, 0, (re+0.05)*_sign_f(vel), 0,0);
+		if(i == loop_i) Kinematic_Analysis_Pos(vel, 0, 0, re*_sign_f(vel), 0,0);
+        // else if (i % 2 == 0 && vel>0) Kinematic_Analysis_Pos(vel, 0.0075 ,-tmp_dw /100.0, 0.4*_sign_f(vel), 0.1, 0.1*_sign_f(-tmp_dw));
+        // else if (i % 2 == 0 && vel<0) Kinematic_Analysis_Pos(vel, 0.0075 ,-tmp_dw /100.0, 0.4*_sign_f(vel), 0.1, 0.1*_sign_f(-tmp_dw));
         else Kinematic_Analysis_Pos(vel, 0, -tmp_dw /100.0, 0.4*_sign_f(vel), 0, 0.1*_sign_f(-tmp_dw));
 		MotorTIMCtrl(MOTOR_LF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[0])+1)/2), (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, False);
 		MotorTIMCtrl(MOTOR_LR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[1])+1)/2), (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, False);
@@ -1135,6 +1145,25 @@ void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime){
 	}
     stop_all_motor();
 }
+
+
+void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
+    ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 5, 0, 0);
+    ((pStruct_PID)xy_pid[1])->setPar(xy_pid[0], 5, 0, 0);
+    int c_x =0, c_y=0 ;
+    while (1){
+       //向上层板查询当前位置
+        if(_abs(c_x - t_x) <= 1 && _abs(t_y - t_y) <= 1)
+            break;
+        int dx = xy_pid[0]->run(xy_pid[0], c_x, t_x);
+        int dy = xy_pid[0]->run(xy_pid[0], c_y, t_y);	
+	    if(_abs(dx) > 400) dx = 400 *_sign(dx);
+        if(_abs(dy) > 400) dy = 400 *_sign(dy);
+        TranslationMove(TIM_CTRL, 0.5, dx, dy, isOSTime);
+    }
+    stop_all_motor();
+}
+
 
 #endif //STEPPER_MOTOR_DRIVER
 #endif //BOTTOM_LEVEL

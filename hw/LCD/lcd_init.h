@@ -2,31 +2,23 @@
 #define __LCD_INIT_H
 
 #include "sys.h"
-#include "stm32f4xx.h"
+#include"config.h"
 
-// #define led_delay_ms(ms) for(int i=0;i<ms;++i){                    \
-//                         for(int j=0;j<1000;++j){                   \
-//                             for(int z=0;z<10;++z);                  \
-//                         }                                           \
-//                     }                                               \
-    
-#define led_delay_ms(ms) delay_xms(ms)
-
-#define USE_HORIZONTAL 2  //è®¾ç½®æ¨ªå±æˆ–è€…ç«–å±æ˜¾ç¤º 0æˆ–1ä¸ºç«–å± 2æˆ–3ä¸ºæ¨ªå±
+#define USE_HORIZONTAL 3  //ÉèÖÃºáÆÁ»òÕßÊúÆÁÏÔÊ¾ 0»ò1ÎªÊúÆÁ 2»ò3ÎªºáÆÁ
 
 
 #if USE_HORIZONTAL==0||USE_HORIZONTAL==1
-#define LCD_W 128
-#define LCD_H 160
+#define LCD_W 240
+#define LCD_H 320
 
 #else
-#define LCD_W 160
-#define LCD_H 128
+#define LCD_W 320
+#define LCD_H 240
 #endif
 
 
 
-//-----------------LCDç«¯å£å®šä¹‰---------------- 
+//-----------------LCD¶Ë¿Ú¶¨Òå---------------- 
 
 #define LCD_SCLK_Clr() GPIO_ResetBits(GPIOF,GPIO_Pin_0)//SCL=SCLK
 #define LCD_SCLK_Set() GPIO_SetBits(GPIOF,GPIO_Pin_0)
@@ -47,13 +39,15 @@
 #define LCD_BLK_Set()  GPIO_SetBits(GPIOF,GPIO_Pin_5)
 
 
-void LCD_GPIO_Init(void);//åˆå§‹åŒ–GPIO
-void LCD_Writ_Bus(uint8_t dat);//æ¨¡æ‹ŸSPIæ—¶åº
-void LCD_WR_DATA8(uint8_t dat);//å†™å…¥ä¸€ä¸ªå­—èŠ‚
-void LCD_WR_DATA(uint16_t dat);//å†™å…¥ä¸¤ä¸ªå­—èŠ‚
-void LCD_WR_REG(uint8_t dat);//å†™å…¥ä¸€ä¸ªæŒ‡ä»¤
-void LCD_Address_Set(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2);//è®¾ç½®åæ ‡å‡½æ•°
-void LCD_Init(void);//LCDåˆå§‹åŒ–
+
+
+void LCD_GPIO_Init(void);//³õÊ¼»¯GPIO
+void LCD_Writ_Bus(u8 dat);//Ä£ÄâSPIÊ±Ðò
+void LCD_WR_DATA8(u8 dat);//Ð´ÈëÒ»¸ö×Ö½Ú
+void LCD_WR_DATA(u16 dat);//Ð´ÈëÁ½¸ö×Ö½Ú
+void LCD_WR_REG(u8 dat);//Ð´ÈëÒ»¸öÖ¸Áî
+void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2);//ÉèÖÃ×ø±êº¯Êý
+void LCD_Init(void);//LCD³õÊ¼»¯
 #endif
 
 
