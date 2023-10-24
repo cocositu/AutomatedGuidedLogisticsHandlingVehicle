@@ -10,11 +10,10 @@
 #define OV_RED_COLOR		  	0x01
 #define OV_GREEN_COLOR			0x02
 #define OV_BLUE_COLOR			0x03
-#define	OV_LOCATE_CORRECT		0x04
-#define OV_RED_CIRCL		  	0x05
-#define OV_GREEN_CIRCL			0x06
-#define OV_BLUE_CIRCL			0x07
-
+#define OV_RED_CIRCL		  	0x04
+#define OV_GREEN_CIRCL			0x05
+#define OV_BLUE_CIRCL			0x06
+#define	OV_CIRCL_COLOR		    0x07
 /*数据帧格式*/
 /* 10位数据
 0  	帧头：[
@@ -35,13 +34,14 @@ typedef struct _OV_struct{
 	uint8_t TxBuff[OV_MSG_TX_LEN];		
 	uint8_t RxCnt;
 
-	uint8_t RoughColor[3];
-	uint8_t StoreColor[3];	//圆圈颜色数据
 	uint8_t TaskNum;
 	uint8_t TaskState;
-	uint8_t Lo_X;
-	uint8_t Lo_Y;
-
+	uint8_t circleColor;
+	// uint8_t Px;
+	// uint8_t Py;
+	uint8_t xy_sta;
+	uint8_t sPx[3];
+	uint8_t	sPy[4];
 
 } OV_MSG_Sturct;
 

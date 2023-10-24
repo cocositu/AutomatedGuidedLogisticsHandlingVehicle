@@ -35,8 +35,7 @@
 
 /*两层通用文件*/
 #include "led.h"
-#include"CarTaskConfig.h"
-
+#include "task_schedule.h"
 
 // #include"uart.h"
 // float EcgDiscrList[28];
@@ -49,7 +48,7 @@
 int main(void){
 	bsp_init();
 
-	//task_comUart_start();
+	task_comUart_start();
 	task_taskSchedule_start();
 	/* 开启任务调度 */
 	LCD_ShowString(0, 0, "task_will_start   ", WHITE, BLACK, 16,0);

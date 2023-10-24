@@ -501,7 +501,14 @@ void replyRecTzoneRingSta(void){
     sendData_Bottom(BottomData.TxBuff, COM_MSG_LEN);
 }
 
-
+void inqCurXYPos(void){
+    uint8_t cmd = 0x11;
+    memset(BottomData.TxBuff,0,COM_MSG_LEN);
+    BottomData.TxBuff[0] =  0x66;
+    BottomData.TxBuff[1] =  cmd;
+    BottomData.TxBuff[COM_MSG_LEN-1] =  0x88;
+    sendData_Bottom(BottomData.TxBuff, COM_MSG_LEN);
+}
 
 #endif // BOTTOM_LEVEL
 

@@ -54,33 +54,28 @@ void ToOPENMV_UART_IRQHandler(void){
 	if(USART_GetITStatus(ToOPENMV_UART, USART_IT_RXNE) != RESET){
 		USART_ClearITPendingBit(ToOPENMV_UART,USART_IT_RXNE);
 		OV_Struct.RxBuff[OV_Struct.RxCnt++] = ToOPENMV_UART->DR;
-		if ((OV_Struct.RxBuff[0] == '[')&&(OV_Struct.RxBuff[9] == ']'))
-		{
+		if ((OV_Struct.RxBuff[0] == '[')&&(OV_Struct.RxBuff[9] == ']')){
 			if(OV_Struct.RxBuff[1] == OV_Struct.TaskNum + '0')	//任务匹配（可不要）相等前提是先给了OpenMV数据
 			{
-				if((OV_Struct.TaskNum == OV_RED_COLOR)||\
-				(OV_Struct.TaskNum == OV_GREEN_COLOR)||\
-				(OV_Struct.TaskNum == OV_BLUE_COLOR))
-				{
+				if((OV_Struct.TaskNum == OV_RED_COLOR)||(OV_Struct.TaskNum == OV_GREEN_COLOR)||(OV_Struct.TaskNum == OV_BLUE_COLOR)){
 					OV_Struct.TaskState = OV_Struct.RxBuff[2];	//2~7数据相同 判断是否抓取物块 'y' 如果是y则开始抓取
 				}
-				if(OV_Struct.TaskNum == OV_LOCATE_CORRECT)
-				{
-					OV_Struct.Lo_X = (OV_Struct.RxBuff[2]-'0')*100 + (OV_Struct.RxBuff[3]-'0')*10 + (OV_Struct.RxBuff[4]-'0');
-					OV_Struct.Lo_Y = (OV_Struct.RxBuff[5]-'0')*100 + (OV_Struct.RxBuff[6]-'0')*10 + (OV_Struct.RxBuff[7]-'0');
-				}
-				if((OV_Struct.TaskNum == OV_RED_CIRCL)||\
-				(OV_Struct.TaskNum == OV_GREEN_CIRCL)||\
-				(OV_Struct.TaskNum == OV_BLUE_CIRCL))
-				{
-					OV_Struct.Lo_X = (OV_Struct.RxBuff[2]-'0')*100 + (OV_Struct.RxBuff[3]-'0')*10 + (OV_Struct.RxBuff[4]-'0');
-					OV_Struct.Lo_Y = (OV_Struct.RxBuff[5]-'0')*100 + (OV_Struct.RxBuff[6]-'0')*10 + (OV_Struct.RxBuff[7]-'0');
-					//后期加颜色处理数据
+				else if((OV_Struct.TaskNum == OV_RED_CIRCL)||(OV_Struct.TaskNum == OV_GREEN_CIRCL)||(OV_Struct.TaskNum == OV_BLUE_CIRCL)){
+					// OV_Struct.Px = (OV_Struct.RxBuff[2]-'0')*100 + (OV_Struct.RxBuff[3]-'0')*10 + (OV_Struct.RxBuff[4]-'0');
+					// OV_Struct.Px = (OV_Struct.RxBuff[5]-'0')*100 + (OV_Struct.RxBuff[6]-'0')*10 + (OV_Struct.RxBuff[7]-'0');
+					OV_Struct.xy_sta = 1;
+					OV_Struct.sPx[0] = OV_Struct.RxBuff[2];
+					OV_Struct.sPx[1] = OV_Struct.RxBuff[3];
+					OV_Struct.sPx[2] = OV_Struct.RxBuff[4];
+					OV_Struct.sPy[0] = OV_Struct.RxBuff[5];
+					OV_Struct.sPy[1] = OV_Struct.RxBuff[6];
+					OV_Struct.sPy[2] = OV_Struct.RxBuff[7];
+				}else if(OV_Struct.TaskNum == OV_CIRCL_COLOR){
+					OV_Struct.circleColor = OV_Struct.RxBuff[2]-'0'; //1,2,3
 				}
 			}
 		}
-		if (OV_Struct.RxCnt == 10)
-		{
+		if (OV_Struct.RxCnt == 10){
 			OV_Struct.RxCnt = 0;
 			memset(OV_Struct.RxBuff,0,sizeof(OV_Struct.RxBuff));
 		}

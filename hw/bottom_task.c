@@ -323,20 +323,6 @@ void task_moveContorCricle(void* pvParameters){
     taskEXIT_CRITICAL();
 }
 
-//0-1   fe
-//1-2  
-//2-3
-//3-4   
-//4-5	
-//5-6	 
-//6-7 ft
-//7-8  
-//8-9
-//9-10  
-//10-11
-//11-12
-//12-13
-//13-14
 
 void task_moveBetweenCricle(void* pvParameters){
 	taskSta[TASK_moveBetweenCricle] = TASK_BUSY_STATE;
@@ -380,9 +366,9 @@ void task_moveXYPosition(void* pvParameters){
 
 	//调整xy位置
 	//320*240   160 120
-	//160*120  80    60
-	//AdjustXYPostion(160, 120, True);
-	vTaskDelay(2000);
+	//160*120   80  60
+	AdjustXYPostion(160, 120, True);
+	//vTaskDelay(2000);
 	taskSta[TASK_moveXYPosition] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveXYPosition_handle);
     taskEXIT_CRITICAL();
@@ -436,6 +422,9 @@ void USART6_IRQHandler(void){
                 BottomData.sta_TzoneSeq = 1;
 				replyRecTzoneRingSta();
                 break;
+			case 0x11:
+				BottomData.px=BottomData.RxBuff[2]*100+BottomData.RxBuff[3]*10+BottomData.RxBuff[4];
+				BottomData.py=BottomData.RxBuff[5]*100+BottomData.RxBuff[6]*10+BottomData.RxBuff[7];
             default:
                 memset(BottomData.RxBuff,0,sizeof(BottomData.RxBuff));
                 break;

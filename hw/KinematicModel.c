@@ -4,7 +4,6 @@
 #include "sys.h"
 #include"stdio.h"
 #include"string.h"
-#include"CarTaskConfig.h"
 double vel_weel[4];
 double pos_weel[4];
 

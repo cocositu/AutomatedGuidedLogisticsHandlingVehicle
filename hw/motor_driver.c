@@ -9,6 +9,8 @@
 #include"math.h"
 
 #ifdef BOTTOM_LEVEL
+#include"task_schedule.h"
+
 #ifdef STEPPER_MOTOR_DRIVER
 
 #define DIAMETER_WHEEL  76 //mm
@@ -1146,13 +1148,20 @@ void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime){
     stop_all_motor();
 }
 
-
 void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
     ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 5, 0, 0);
     ((pStruct_PID)xy_pid[1])->setPar(xy_pid[0], 5, 0, 0);
     int c_x =0, c_y=0 ;
-    while (1){
-       //向上层板查询当前位置
+    int tmp_i = 30;
+    while (tmp_i--){
+        while (BottomData.sta_xy !=1){
+            inqCurXYPos();
+            if(isOSTime)    vTaskDelay(50);
+            else            delay_xms(50);    
+        }
+        BottomData.sta_xy = 0;
+        c_x = BottomData.px;
+        c_y = BottomData.px;
         if(_abs(c_x - t_x) <= 1 && _abs(t_y - t_y) <= 1)
             break;
         int dx = xy_pid[0]->run(xy_pid[0], c_x, t_x);
@@ -1163,7 +1172,6 @@ void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
     }
     stop_all_motor();
 }
-
 
 #endif //STEPPER_MOTOR_DRIVER
 #endif //BOTTOM_LEVEL

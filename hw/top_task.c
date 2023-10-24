@@ -4,6 +4,7 @@
 #ifdef  TOP_LEVEL
 
 Arr_pLedStruct LED = NULL;
+int putM_count = 0;
 
 void bsp_init(void){
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
@@ -107,7 +108,7 @@ void task_comUart_start(void){
 			  (const char*    )"comUart",	    /* 任务名字 */
 			  (uint16_t       )128,  				    /* 任务栈大小 */
 			  (void*          )NULL,				    /* 任务入口函数参数 */
-			  (UBaseType_t    )3, 					    /* 任务的优先级 */
+			  (UBaseType_t    )2, 					    /* 任务的优先级 */
 			  (TaskHandle_t*  )&task_comUart_handle);	/* 任务控制块指针 */ 
 }
 
@@ -166,7 +167,6 @@ void task_taskSchedule(void* pvParameters){
    	taskSta[TASK_taskSchedule] = TASK_BUSY_STATE;
 	
    	while (task_index < 66){
-		LCD_ShowString(0, 0, "last_task_j_bs      ", WHITE, BLACK, 16,0);
         while (get_task_status(taskList[task_index]) != TASK_IDLE_STATE && task_index != 0){
             LCD_ShowIntNum(32, 16, taskSta[taskList[task_index]], 2, WHITE, BLACK, 16);
 			vTaskDelay(100);
@@ -179,10 +179,7 @@ void task_taskSchedule(void* pvParameters){
             //启动当前任务,如何发现没有开启，再次发送开启指令
             task_switch(taskList[task_index]);
         }
-		LCD_ShowString(0, 0, "task_j_sta           ", WHITE, BLACK, 16, 0);
-		
    	}
-
 
 	taskSta[TASK_taskSchedule] = TASK_IDLE_STATE;
    	vTaskDelete(task_taskSchedule_handle);
@@ -193,14 +190,18 @@ void task_taskSchedule(void* pvParameters){
 void task_comUart(void* pvParameters){
 	while (1){
 		if(TopData.xy_pos_sta == 1){
-			//读取openMVd的值
+			//向OV查询
+			while (OV_Struct.xy_sta != 1){
+				OV_SendData(putM_count%3 + 3 + '0');
+				vTaskDelay(50);
+			}	
+			OV_Struct.xy_sta = 0;	
 			//转发给底板
+			replyXYPos(OV_Struct.sPx, OV_Struct.sPy);
 			TopData.xy_pos_sta = 0;
 		}
-
-		vTaskDelay(100);
+		vTaskDelay(50);
 	}
-	
 }
 
 
@@ -215,16 +216,12 @@ void task_identifyQRcode(void* pvParameters){
 				Arr_CarryColorSeq[SECOND_SEQ][i+1] = QRCode.MSG_Buff[i+4] - '0';
 			}
 			showQRCodeMessage(QRCode.MSG_Buff);
+
 			//向底板发送搬运顺序
-			// while (TopData.sta_CarrySeq == 1){
-			// 	sendCarrySeq();
-			// 	vTaskDelay(80);
-			// }
-			
-			int tmp_i = 6;
-			while (tmp_i--){
-				sendCarrySeq();
-				vTaskDelay(60);
+			int tmp_i = 6;                            	// while (TopData.sta_CarrySeq == 1){
+			while (tmp_i--){                            // 	sendCarrySeq();
+				sendCarrySeq();                         // 	vTaskDelay(80);
+				vTaskDelay(60);                         // }
 			}
 			TopData.sta_CarrySeq = 0;
 			
@@ -270,8 +267,14 @@ int idfCC_conunt = 0;
 void task_indetifyCrileColor(void* pvParameters){
 	taskSta[TASK_indetifyCrileColor] = TASK_BUSY_STATE;
 
+	while (OV_Struct.circleColor == 0){
+		OV_SendData(0x07);
+		vTaskDelay(80);
+	}
 	//识别色环颜色
-	//Arr_ZoneColorSeq[idfCC_conunt/2][idfCC_conunt%2 + 1] = /**/;
+	Arr_ZoneColorSeq[idfCC_conunt/2][idfCC_conunt%2 + 1] = OV_Struct.circleColor;
+	OV_Struct.circleColor = 0;
+
 	idfCC_conunt++;
 	
 	if(idfCC_conunt == 2){
@@ -296,8 +299,7 @@ void task_indetifyCrileColor(void* pvParameters){
 		// }
 
 		int tmp_i =6;
-		while (tmp_i--)
-		{
+		while (tmp_i--){
 			sendEzoneSeq();
 			vTaskDelay(80);
 		}
@@ -323,8 +325,7 @@ void task_indetifyCrileColor(void* pvParameters){
 		// 	vTaskDelay(100);
 		// }
 		int tmp_i =6;
-		while (tmp_i--)
-		{
+		while (tmp_i--){
 			sendTzoneSeq();
 			vTaskDelay(100);
 		}
@@ -349,12 +350,12 @@ void task_grabMaterial(void* pvParameters){
     taskEXIT_CRITICAL();
 }
 
-int putM_count = 0;
+// int putM_count = 0;
 void task_putMaterial(void* pvParameters){
 	taskSta[TASK_putMaterial] = TASK_BUSY_STATE;
 
-	// 0,1,2,3,4,5,6,7,8,9,10,11
-	// 1,2,3,4,5,6,7,8,9,10,11,12
+	// 0,1,2,3,4,5,6,7,8,9,10,11...
+	// 1,2,3,4,5,6,7,8,9,10,11,12...
 	//放置物料
 	
 	if(putM_count < 9)  PutMate_to_G(Arr_CarryColorSeq[RingMovSeq][putM_count % 3 + 1],True);

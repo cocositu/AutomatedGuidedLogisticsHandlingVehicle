@@ -76,6 +76,7 @@ typedef struct {
 
     uint8_t xy_pos_sta;
 
+
 }TopDataType;
 
 extern TopDataType TopData;
@@ -109,9 +110,10 @@ typedef struct {
     uint8_t sta_CarrySeq;
     uint8_t sta_EzoneSeq;
     uint8_t sta_TzoneSeq;
-
-    uint8_t px;
-    uint8_t py;
+    
+    uint8_t sta_xy;
+    int px;
+    int py;
 
 }BottomDataType;
 
@@ -123,8 +125,7 @@ void replyCurTaskStatus(uint8_t task_name);
 void replyRecEzoneRingSta(void);
 void replyRecTzoneRingSta(void);
 void replyRecCarrySta(void);
-//  void CarBottomSendData(uint8_t   DataBuff[], uint32_t DataLenth);
-// void BottomRetuTask(uint8_t TaskID, uint8_t TaskState);
+void inqCurXYPos(void);
 
 #endif //BOTTOM_LEVEL
 

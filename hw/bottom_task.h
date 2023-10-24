@@ -8,7 +8,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-
 #include "motor_driver.h"
 #include "hwt101.h"
 #include "KinematicModel.h"
@@ -17,7 +16,6 @@
 #include "led.h"
 #include "pid.h"
 #include "sys.h"
-#include "CarTaskConfig.h"
 
 extern Arr_pLedStruct LED;
 extern Arr_pStruct_Pos_PID tmp_pid; 

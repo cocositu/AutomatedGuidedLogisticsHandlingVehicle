@@ -20,8 +20,6 @@
 #include"manipulator.h"
 /*两层通用文件*/
 #include "led.h"
-#include"CarTaskConfig.h"
-
 
 static TaskHandle_t task_taskSchedule_handle            = NULL;
 static TaskHandle_t task_comUart_handle                 = NULL;

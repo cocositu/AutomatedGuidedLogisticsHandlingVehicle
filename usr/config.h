@@ -3,8 +3,8 @@
 
 #define STM32_STD_DRVER 
 #define STEPPER_MOTOR_DRIVER
-#define TOP_LEVEL
-//#define BOTTOM_LEVEL
+//#define TOP_LEVEL
+#define BOTTOM_LEVEL
 
 #ifdef  STM32_STD_DRVER
 
