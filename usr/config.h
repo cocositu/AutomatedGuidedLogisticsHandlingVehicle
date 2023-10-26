@@ -3,8 +3,8 @@
 
 #define STM32_STD_DRVER 
 #define STEPPER_MOTOR_DRIVER
-#define TOP_LEVEL
-//#define BOTTOM_LEVEL
+//#define TOP_LEVEL
+#define BOTTOM_LEVEL
 
 #ifdef  STM32_STD_DRVER
 
@@ -40,6 +40,10 @@ typedef uint8_t bool;
 #define XYADJUST_GPIO_CLK                       RCC_AHB1Periph_GPIOD
 #define XYADJUST_FUN_GPIO_CLK(NewState)         RCC_AHB1PeriphClockCmd(XYADJUST_GPIO_CLK , NewState)
 
+#define getTaskSta_GPIO                         GPIOD
+#define getTaskSta_GPIO_PIN                     GPIO_Pin_1
+#define getgetTaskSta_GPIO_CLK                  RCC_AHB1Periph_GPIOD
+#define getTaskSta_FUN_GPIO_CLK(NewState)       RCC_AHB1PeriphClockCmd(getgetTaskSta_GPIO_CLK, NewState)
 
 #define QRCODE_UART                      UART5
 #define QRCODE_GPIO_AF_UART              GPIO_AF_UART5
@@ -160,6 +164,11 @@ typedef uint8_t bool;
 #define XYADJUST_GPIO_PIN                       GPIO_Pin_13
 #define XYADJUST_GPIO_CLK                       RCC_AHB1Periph_GPIOB
 #define XYADJUST_FUN_GPIO_CLK(NewState)         RCC_AHB1PeriphClockCmd(XYADJUST_GPIO_CLK , NewState)
+
+#define getTaskSta_GPIO                         GPIOB
+#define getTaskSta_GPIO_PIN                     GPIO_Pin_14
+#define getgetTaskSta_GPIO_CLK                  RCC_AHB1Periph_GPIOB
+#define getTaskSta_FUN_GPIO_CLK(NewState)       RCC_AHB1PeriphClockCmd(getgetTaskSta_GPIO_CLK , NewState)
 
 #define MOTOR_LF_EN_GPIO                     GPIOA
 #define MOTOR_LF_EN_GPIO_PIN                 GPIO_Pin_4

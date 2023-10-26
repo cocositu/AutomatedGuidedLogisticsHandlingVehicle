@@ -18,6 +18,7 @@ void bsp_init(void){
 	ToOpenMV_uart_init(9600);
 	Fill_inLight_init();
 	XYPos_GPIO_init();
+	getTaskSta_GPIO_Init();
 	delay_xms(500);
     LCD_Fill(0,0,LCD_W,LCD_H,BLACK);
 	LCD_ShowString(0, 0, "Init_is_starting", WHITE, BLACK, 16,0);
@@ -169,22 +170,36 @@ void task_taskSchedule(void* pvParameters){
 	TopData.xy_pos_sta = 0;
    	while (task_index < 66){
         while (get_task_status(taskList[task_index]) != TASK_IDLE_STATE && task_index != 0){
+
             LCD_ShowIntNum(32, 16, taskSta[taskList[task_index]], 2, WHITE, BLACK, 16);
-			vTaskDelay(100);
+			
+			if(taskSta[taskList[task_index]] == 1)	LED[2]->on(LED[2]);
+			else		LED[2]->off(LED[2]);
+
+			if(taskList[taskList[task_index]] < 0xA0)  vTaskDelay(30);
+			else  vTaskDelay(150);
+			
         }
 		task_index++;
+
 		if(taskList[task_index] == TASK_moveXYPosition){
 			GPIO_SetBits(GPIOD,GPIO_Pin_3);
 		}else{
 			GPIO_ResetBits(GPIOD,GPIO_Pin_3);
 		}
+
 		LCD_ShowString(0, 0, "task_j_is          ", WHITE, BLACK, 16, 0);
 		LCD_ShowIntNum(0, 16, task_index, 2, WHITE, BLACK, 16);
+
         while (get_task_status(taskList[task_index]) == TASK_IDLE_STATE){
-			vTaskDelay(80);
+			if(taskList[task_index] < 0xA0)vTaskDelay(50);
+			else   vTaskDelay(200);
+
             //启动当前任务,如何发现没有开启，再次发送开启指令
             task_switch(taskList[task_index]);
-			vTaskDelay(80);
+			if(taskList[task_index] < 0xA0)  vTaskDelay(80);
+			else  vTaskDelay(200);
+			
         }
    	}
 
@@ -196,17 +211,19 @@ void task_taskSchedule(void* pvParameters){
 
 void task_comUart(void* pvParameters){
 	while (1){
+
 		LED[1]->reverse(LED[1]);
 		if(XY_GPIO_READ() == 1){
-				OV_SendData(Arr_CarryColorSeq[RingMovSeq][putM_count % 3 + 1] + 3);
+			OV_SendData(Arr_CarryColorSeq[RingMovSeq][putM_count % 3 + 1] + 3);
 		}
 		if(OV_Struct.xy_sta == 1){
+			LED[2]->reverse(LED[2]);
 			vTaskSuspend(task_taskSchedule_handle);
-			vTaskDelay(80);
+			vTaskDelay(50);
 			//转发给底板
 			replyXYPos(OV_Struct.sPx, OV_Struct.sPy);
 			OV_Struct.xy_sta = 0;
-			vTaskDelay(80);
+			vTaskDelay(50);
 			vTaskResume(task_taskSchedule_handle);
 		}
 		vTaskDelay(100);
@@ -307,7 +324,7 @@ void task_indetifyCrileColor(void* pvParameters){
 		int tmp_i =6;
 		while (tmp_i--){
 			sendEzoneSeq();
-			vTaskDelay(80);
+			vTaskDelay(100);
 		}
 		
 	}else if(idfCC_conunt == 4){
@@ -337,7 +354,7 @@ void task_indetifyCrileColor(void* pvParameters){
 		}
 		
 	}
-	vTaskDelay(1000);
+	vTaskDelay(600);
 	taskSta[TASK_indetifyCrileColor] = TASK_IDLE_STATE;
 	vTaskDelete(task_indetifyCrileColor_handle);
     taskEXIT_CRITICAL();

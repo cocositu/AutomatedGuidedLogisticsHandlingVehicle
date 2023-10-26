@@ -169,9 +169,11 @@ void CalMovBetweenRings(int zone, int seq, int init_pos){
 
 uint8_t get_task_status(uint8_t task_name){
     #ifdef TOP_LEVEL
-    if(task_name > 0xA0 && (TopData.xy_pos_sta == 0 || task_name != TASK_moveXYPosition)){
+    if(task_name > 0xA0/* && (TopData.xy_pos_sta == 0 || task_name != TASK_moveXYPosition)*/){
         //串口发送数据获取任务运行状态,装入taskSta[task_name]中
-        sendInquireTaskSta(task_name);
+        //sendInquireTaskSta(task_name);
+        //改为读取引脚电平返回状态
+        taskSta[task_name] = getTaskSta_GPIO_READ();
     }
     #endif //TOP_LEVEL
     return taskSta[task_name];
@@ -186,13 +188,27 @@ void XYPos_GPIO_init(void){
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
     GPIO_InitStructure.GPIO_Pin   = XYADJUST_GPIO_PIN;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;	// 上下拉选择：浮空
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;	
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_Init(XYADJUST_GPIO, &GPIO_InitStructure);
 }
 
+void getTaskSta_GPIO_Init(void){
+    getTaskSta_FUN_GPIO_CLK(ENABLE);
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
+    GPIO_InitStructure.GPIO_Pin   = getTaskSta_GPIO_PIN;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;	
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(getTaskSta_GPIO, &GPIO_InitStructure);
+}
+
 bool XY_GPIO_READ(void){
-    return GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_0);
+    return GPIO_ReadInputDataBit(XYADJUST_GPIO, XYADJUST_GPIO_PIN);
+}
+
+bool getTaskSta_GPIO_READ(void){
+ return GPIO_ReadInputDataBit(getTaskSta_GPIO, getTaskSta_GPIO_PIN);
 }
 
 void TopComUartInit(uint32_t bound){
@@ -391,19 +407,34 @@ BottomDataType BottomData = {0};
 
 void XYPos_GPIO_init(void){
   	GPIO_InitTypeDef  GPIO_InitStructure;
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能PORTA~E,PORTG时钟
-  	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+    XYADJUST_FUN_GPIO_CLK(ENABLE);
+  	GPIO_InitStructure.GPIO_Pin = XYADJUST_GPIO_PIN;
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
  	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
-  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;//100MHz
+  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
   	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;//上拉
-  	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+  	GPIO_Init(XYADJUST_GPIO, &GPIO_InitStructure);//初始化
+}
+
+void getTaskSta_GPIO_Init(void){
+    GPIO_InitTypeDef  GPIO_InitStructure;
+	getTaskSta_FUN_GPIO_CLK(ENABLE);
+  	GPIO_InitStructure.GPIO_Pin  = getTaskSta_GPIO_PIN;
+  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+ 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+  	GPIO_Init(getTaskSta_GPIO, &GPIO_InitStructure);
 }
 
 void XY_GPIO_CTRL(bool level){
     level?GPIO_SetBits(XYADJUST_GPIO, XYADJUST_GPIO_PIN):GPIO_ResetBits(XYADJUST_GPIO, XYADJUST_GPIO_PIN);
+    
 }
 
+void getTaskSta_GPIO_CTRL(bool level){
+    level?GPIO_SetBits(getTaskSta_GPIO , getTaskSta_GPIO_PIN):GPIO_ResetBits(getTaskSta_GPIO, getTaskSta_GPIO_PIN);
+}
 
 void BottomComUartInit(uint32_t bound){
   

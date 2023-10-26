@@ -3,7 +3,6 @@
 #include"task_schedule.h"
 
 #ifdef BOTTOM_LEVEL
-
 Arr_pLedStruct LED = NULL;
 
 void bsp_init(void){
@@ -23,6 +22,7 @@ void bsp_init(void){
     IMU_uart_init(9600);
 	BottomComUartInit(9600);
 	XYPos_GPIO_init();
+	getTaskSta_GPIO_Init();
 	LED = Create_Arr_LedStruct(3);
 
     LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
@@ -187,15 +187,25 @@ void task_taskSchedule(void* pvParameters){
 	//用来处理上层板发来的数据
    	while (1){
 		LED[1]->reverse(LED[1]);
-		if(BottomData.needStartTask != 0){
+		// if(BottomData.needStartTask != 0 && taskSta[BottomData.needStartTask] == TASK_BUSY_STATE) {
+		// 	getTaskSta_GPIO_CTRL(1);
+		// 	BottomData.needStartTask=0;
+		// }else 
+		if(BottomData.needStartTask != 0 && taskSta[BottomData.needStartTask] != TASK_BUSY_STATE){
+			getTaskSta_GPIO_CTRL(1);
 			taskSta[BottomData.needStartTask] = TASK_BUSY_STATE;
 			task_switch(BottomData.needStartTask);
 			BottomData.needStartTask=0;
 		}
-		if(BottomData.needRelyTask != 0){	
-			replyCurTaskStatus(BottomData.needRelyTask);
-			BottomData.needRelyTask = 0;
-		}
+		// if(BottomData.needStartTask != 0 && taskSta[BottomData.needStartTask] == TASK_IDLE_STATE){
+		// 	getTaskSta_GPIO_CTRL(0);
+		// 	BottomData.needStartTask=0;
+		// }
+		
+		// if(BottomData.needRelyTask != 0){
+		// 	//replyCurTaskStatus(BottomData.needRelyTask);
+		// 	BottomData.needRelyTask = 0;
+		// }
     	vTaskDelay(80);
    	}
 	
@@ -205,41 +215,45 @@ void task_taskSchedule(void* pvParameters){
 
 void task_moveSzoneToQRzone(void* pvParameters){
 	taskSta[TASK_moveSzoneToQRzone] = TASK_BUSY_STATE;
-	TranslationMove_PID(1, SZONE_TO_TMPZONE_DIS, -SZONE_TO_TMPZONE_DIS, True);
+	getTaskSta_GPIO_CTRL(1);
+	TranslationMove_PID(1.5, SZONE_TO_TMPZONE_DIS, -SZONE_TO_TMPZONE_DIS, True);
 	vTaskDelay(100);
-	MoveInLine_PID(1, TMPZONE_TO_QRCODE_DIS ,True);
+	MoveInLine_PID(1.6, TMPZONE_TO_QRCODE_DIS ,True);
 	
 	taskSta[TASK_moveSzoneToQRzone] = TASK_IDLE_STATE ;
+	getTaskSta_GPIO_CTRL(0);
 	vTaskDelete(task_moveSzoneToQRzone_handle);
     taskEXIT_CRITICAL();
 }
 
 void task_moveQRzoneToMzone(void* pvParameters){
 	taskSta[TASK_moveQRzoneToMzone] = TASK_BUSY_STATE;
-
-	MoveInLine_PID(1, QRZONE_TO_MZONE_DIS, True);
+	getTaskSta_GPIO_CTRL(1);
+	MoveInLine_PID(1.6, QRZONE_TO_MZONE_DIS, True);
 	vTaskDelay(100);
 	TranslationMove(UART_CTRL, 1, 0, 0.18f, True);
-	taskSta[TASK_moveQRzoneToMzone] = TASK_IDLE_STATE ;
+	taskSta[TASK_moveQRzoneToMzone] = TASK_IDLE_STATE;
+	getTaskSta_GPIO_CTRL(0);
 	vTaskDelete(task_moveQRzoneToMzone_handle);
     taskEXIT_CRITICAL();
 }
 
 void task_moveMzoneToEzone(void* pvParameters){
 	taskSta[TASK_moveMzoneToEzone] = TASK_BUSY_STATE;
-
+	getTaskSta_GPIO_CTRL(1);
 	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
-	vTaskDelay(300);
-	MoveInLine_PID(1, MZONE_TO_FIRCOR_DIS, True);
+	vTaskDelay(200);
+	MoveInLine_PID(1.6, MZONE_TO_FIRCOR_DIS, True);
 	vTaskDelay(100);
 	AntiClockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(1, FIRCOR_TO_EZONE_DIS, False);
+	MoveInLine_PID(1.6, FIRCOR_TO_EZONE_DIS, False);
 	vTaskDelay(100);
 	TranslationMove(UART_CTRL, 1, 0, 0.2f, True);
 	vTaskDelay(100);
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveMzoneToEzone] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveMzoneToEzone_handle);
     taskEXIT_CRITICAL();
@@ -247,20 +261,22 @@ void task_moveMzoneToEzone(void* pvParameters){
 
 void task_moveEzoneToTzone(void* pvParameters){
 	taskSta[TASK_moveEzoneToTzone] = TASK_BUSY_STATE;
-	vTaskDelay(300);
+	getTaskSta_GPIO_CTRL(1);
+	//vTaskDelay(300);
 	//这里还要计算
 	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
-	vTaskDelay(100);
+	vTaskDelay(220);
 	double tmp_ids = (3 - Arr_ABS_ZoneMove[EZONE_SEQ][RingMovSeq][3])*RINGS_BETWEEN_DIS;
-	MoveInLine_PID(1, EZONE_TO_SECCOR_DIS+tmp_ids , True);
+	MoveInLine_PID(1.6, EZONE_TO_SECCOR_DIS+tmp_ids , True);
 	vTaskDelay(100);
 	AntiClockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(1, SECCOR_TO_TZONE_DIS, False);
+	MoveInLine_PID(1.6, SECCOR_TO_TZONE_DIS, False);
 	delay_ms(100);
 	TranslationMove(UART_CTRL, 1, 0, 0.18f, True);
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveEzoneToTzone] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveEzoneToTzone_handle);
     taskEXIT_CRITICAL();
@@ -268,47 +284,51 @@ void task_moveEzoneToTzone(void* pvParameters){
 
 void task_moveTzoneToMzone(void* pvParameters){
 	taskSta[TASK_moveTzoneToMzone] = TASK_BUSY_STATE;
-
+	getTaskSta_GPIO_CTRL(1);
 	vTaskDelay(300);
 	TranslationMove(UART_CTRL, 1, 0, -0.18f, True);
-	vTaskDelay(300);
+	vTaskDelay(200);
 	double tmp_ids = ((double)Arr_ABS_ZoneMove[TZONE_SEQ][FIRST_SEQ][3]-1)*RINGS_BETWEEN_DIS;
-	MoveInLine_PID(-1,TZONE_TO_SECCOR_DIS + tmp_ids, True);
+	MoveInLine_PID(-1.5,TZONE_TO_SECCOR_DIS + tmp_ids, True);
 	vTaskDelay(100);
 
 	Clockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(-1,SECCOR_TO_FIRCOR_DIS, True);
+	MoveInLine_PID(-1.6,SECCOR_TO_FIRCOR_DIS, True);
 	Clockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(-1,FIRCOR_TO_MZONE_DIS, True);
+	MoveInLine_PID(-1.6,FIRCOR_TO_MZONE_DIS - 0.12/*0.3034389751*/, True);
 	TranslationMove(UART_CTRL, 1, 0, 0.2f, True);
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveTzoneToMzone] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveTzoneToMzone_handle);
     taskEXIT_CRITICAL();
 }
 void task_moveTzoneToSzone(void* pvParameters){
 	taskSta[TASK_moveTzoneToSzone] = TASK_BUSY_STATE;
-	
+	getTaskSta_GPIO_CTRL(1);
+
 	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
+	vTaskDelay(200);
 	//这里需要重新计算
 	double tmp_ids = (3-Arr_ABS_ZoneMove[TZONE_SEQ][SECOND_SEQ][3])*RINGS_BETWEEN_DIS;
-	MoveInLine_PID(1, TZONE_TO_THIRCOR_DIS + tmp_ids, True);
+	MoveInLine_PID(2, TZONE_TO_THIRCOR_DIS + tmp_ids, True);
 	vTaskDelay(100);
 
 	AntiClockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(1, THIRCOR_DIS_TO_TMPZONE_DIS, True);
-	TranslationMove_PID(1,TMPZONE_TO_SZONE_X_DIS,TMPZONE_TO_SZONE_Y_DIS, True);
+	MoveInLine_PID(2.5, THIRCOR_DIS_TO_TMPZONE_DIS, True);
+	TranslationMove_PID(2,TMPZONE_TO_SZONE_X_DIS,TMPZONE_TO_SZONE_Y_DIS, True);
 	AntiClockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveTzoneToSzone] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveTzoneToSzone_handle);
     taskEXIT_CRITICAL();
@@ -316,10 +336,11 @@ void task_moveTzoneToSzone(void* pvParameters){
 
 void task_moveContorCricle(void* pvParameters){
 	taskSta[TASK_moveContorCricle] = TASK_BUSY_STATE;
-
+	getTaskSta_GPIO_CTRL(1);
 	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS, 0, True);
 	vTaskDelay(500);
 
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveContorCricle] = TASK_IDLE_STATE;
 	vTaskDelete(task_moveContorCricle_handle);
     taskEXIT_CRITICAL();
@@ -328,9 +349,8 @@ void task_moveContorCricle(void* pvParameters){
 
 void task_moveBetweenCricle(void* pvParameters){
 	taskSta[TASK_moveBetweenCricle] = TASK_BUSY_STATE;
-	
+	getTaskSta_GPIO_CTRL(1);
 	RingMovSeq  = (RingMovCount_total / 9) & 0x01;
-	
 	if(RingMovCount_total == 0){
 		RingMovZone = 0;
 		RingMovCount = 0;
@@ -355,9 +375,10 @@ void task_moveBetweenCricle(void* pvParameters){
 	int8_t tmp_i = Arr_REL_ZoneMove[RingMovZone][RingMovSeq][RingMovCount];
 	
 	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS * tmp_i, 0, True);
-	vTaskDelay(2400);
+	vTaskDelay(1000);
 
 	RingMovCount_total++;
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveBetweenCricle] = TASK_IDLE_STATE;
 	vTaskDelete(task_moveBetweenCricle_handle);
     taskEXIT_CRITICAL();
@@ -365,12 +386,13 @@ void task_moveBetweenCricle(void* pvParameters){
 
 void task_moveXYPosition(void* pvParameters){
 	taskSta[TASK_moveXYPosition] = TASK_BUSY_STATE;
-
+	getTaskSta_GPIO_CTRL(1);
 	//调整xy位置
 	//320*240   160 120
 	//160*120   80  60
-	AdjustXYPostion(150, 120, True);
+	AdjustXYPostion(152, 124, True);
 	//vTaskDelay(2000);
+	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveXYPosition] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveXYPosition_handle);
     taskEXIT_CRITICAL();
@@ -380,17 +402,18 @@ void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
     ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 1, 0, 0);
     ((pStruct_PID)xy_pid[1])->setPar(xy_pid[1], 1, 0, 0);
     int c_x =0, c_y=0 ;
-    int tmp_i = 15;
+    int tmp_i = 8;
+	LED[2]->reverse(LED[2]);
     while (tmp_i--){
-		//vTaskSuspend(task_taskSchedule_handle);
+		vTaskSuspend(task_taskSchedule_handle);
         while (BottomData.sta_xy !=1){
 			LED[0]->reverse(LED[0]);
             // inqCurXYPos();
 			XY_GPIO_CTRL(1);
-            if(isOSTime)    vTaskDelay(200);
-            else            delay_xms(200);    
+            if(isOSTime)    vTaskDelay(250);
+            else            delay_xms(250);    
         }
-		//vTaskResume(task_taskSchedule_handle);
+		vTaskResume(task_taskSchedule_handle);
 		XY_GPIO_CTRL(0);
         BottomData.sta_xy = 0;
 		
@@ -399,13 +422,13 @@ void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
 	
         double dx = (double)xy_pid[1]->run(xy_pid[1], (double)c_x, (double)t_x);
         double dy = (double)xy_pid[0]->run(xy_pid[0], (double)c_y, (double)t_y);	
-		dx = dx*0.0008;
-		dy = dy*0.0008;
+		dx = dx*0.0012;
+		dy = dy*0.0012;
 	    if(_abs_f(dx) > 1) dx = 1 *_sign_f(dx);
         if(_abs_f(dy)> 1) dy = 1 *_sign_f(dy);
 		
         TranslationMove(TIM_CTRL, 0.12, dx, dy, isOSTime);
-		vTaskDelay(200);
+		vTaskDelay(150);
     }
     stop_all_motor();
 }
@@ -425,13 +448,13 @@ void USART6_IRQHandler(void){
             //     else if(BottomData.RxBuff[2] == 0xF6) replyRecTzoneRingSta();
             //     break;
             case 0xB2:
-                if(BottomData.RxBuff[2]!= 0 && taskSta[BottomData.RxBuff[2]] != TASK_BUSY_STATE){
-			        taskSta[BottomData.RxBuff[2]] = TASK_BUSY_STATE;
+                if(BottomData.RxBuff[2]!= 0 /*&& taskSta[BottomData.RxBuff[2]] != TASK_BUSY_STATE*/){
+			        //taskSta[BottomData.RxBuff[2]] = TASK_BUSY_STATE;
 			        BottomData.needStartTask = BottomData.RxBuff[2];
                 }
                 break;
             case 0xC3://查询任务状态
-                BottomData.needRelyTask = BottomData.RxBuff[2];
+                //BottomData.needRelyTask = BottomData.RxBuff[2];
                 //replyCurTaskStatus(BottomData.RxBuff[2]);
                 break;
             case 0xD4://搬运顺序
@@ -466,7 +489,9 @@ void USART6_IRQHandler(void){
                 memset(BottomData.RxBuff,0,sizeof(BottomData.RxBuff));
                 break;
             }
-        }
+        }else{
+			memset(BottomData.RxBuff,0,sizeof(BottomData.RxBuff));
+		}
 		DMA2_Stream1->NDTR = COM_MSG_LEN;
 		DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1);  /* 清DMA标志位 */
 		DMA_Cmd(DMA2_Stream1, ENABLE);      

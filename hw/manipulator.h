@@ -33,7 +33,7 @@ void PutMate_to_M(uint8_t x,bool isOSTime);
 
 void alone_Rotate_MateTray(uint8_t x,bool isOSTime);
 void move_MechArm_to_MTBottom(bool isOSTime);
-
+void identify_color_circle_postion(uint8_t dir);
 // void ManServo_StepMoter_Init(void);
 // void Item_tray_Turn(int x);
 // void Catch_Itemtray_Action(void);

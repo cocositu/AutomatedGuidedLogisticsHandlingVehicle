@@ -83,6 +83,8 @@ extern TopDataType TopData;
 
 void XYPos_GPIO_init(void);
 bool XY_GPIO_READ(void);
+void getTaskSta_GPIO_Init(void);
+bool getTaskSta_GPIO_READ(void);
 void TopComUartInit(uint32_t bound);
 void TopSendData(uint8_t  DataBuff[], uint8_t DataLenth);
 void sendStartTask(uint8_t task_name);
@@ -123,6 +125,9 @@ extern BottomDataType BottomData;
 
 void XYPos_GPIO_init(void);
 void XY_GPIO_CTRL(bool level);
+void getTaskSta_GPIO_Init(void);
+void getTaskSta_GPIO_CTRL(bool level);
+
 void BottomComUartInit(uint32_t bound);
 void sendData_Bottom(uint8_t   DataBuff[], uint32_t DataLenth);
 void replyCurTaskStatus(uint8_t task_name);

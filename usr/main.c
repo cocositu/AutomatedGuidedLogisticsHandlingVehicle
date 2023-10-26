@@ -48,7 +48,6 @@
 
 int main(void){
 	bsp_init();
-
 	task_comUart_start();
 	task_taskSchedule_start();
 	/* 开启任务调度 */
@@ -71,8 +70,7 @@ int main(void){
 int main(void){
 	bsp_init();
 	pid_init();
-	delay_xms(5000);
-	
+	delay_xms(1000);
 	task_taskSchedule_start();
 	// TranslationMove(UART_CTRL, 1, 0.607, 0, False);
 	// delay_xms(5000);
