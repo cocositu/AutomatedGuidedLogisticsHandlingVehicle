@@ -9,14 +9,15 @@ int putM_count = 0;
 void bsp_init(void){
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	delay_init();
-	LCD_Init();
 	
+	LCD_Init();
 	TopComUartInit(9600);
 	QR_uart_init(115200);
 	MAN_SERVO_UART_Init(9600);
 	MAN_STEP_UART_Init(115200);
 	ToOpenMV_uart_init(9600);
-
+	Fill_inLight_init();
+	XYPos_GPIO_init();
 	delay_xms(500);
     LCD_Fill(0,0,LCD_W,LCD_H,BLACK);
 	LCD_ShowString(0, 0, "Init_is_starting", WHITE, BLACK, 16,0);
@@ -28,7 +29,7 @@ void bsp_init(void){
 	init_MechArm_and_MateTray(False);
 	delay_xms(5000);
 	LCD_ShowString(0, 0, "Init_Successfull", WHITE, BLACK, 16,0);
-	
+	OV_Struct.xy_sta = 0;
 }
 
 void task_switch(uint8_t task_name){
@@ -99,7 +100,7 @@ void task_taskSchedule_start(void){
 			  (const char*    )"taskSchedule",	    /* 任务名字 */
 			  (uint16_t       )512,  				    /* 任务栈大小 */
 			  (void*          )NULL,				    /* 任务入口函数参数 */
-			  (UBaseType_t    )2, 					    /* 任务的优先级 */
+			  (UBaseType_t    )1, 					    /* 任务的优先级 */
 			  (TaskHandle_t*  )&task_taskSchedule_handle);	/* 任务控制块指针 */ 
 }
 
@@ -165,19 +166,25 @@ void task_putMaterial_start(void){
 //static int task_index = 0;
 void task_taskSchedule(void* pvParameters){
    	taskSta[TASK_taskSchedule] = TASK_BUSY_STATE;
-	
+	TopData.xy_pos_sta = 0;
    	while (task_index < 66){
         while (get_task_status(taskList[task_index]) != TASK_IDLE_STATE && task_index != 0){
             LCD_ShowIntNum(32, 16, taskSta[taskList[task_index]], 2, WHITE, BLACK, 16);
 			vTaskDelay(100);
         }
 		task_index++;
+		if(taskList[task_index] == TASK_moveXYPosition){
+			GPIO_SetBits(GPIOD,GPIO_Pin_3);
+		}else{
+			GPIO_ResetBits(GPIOD,GPIO_Pin_3);
+		}
 		LCD_ShowString(0, 0, "task_j_is          ", WHITE, BLACK, 16, 0);
 		LCD_ShowIntNum(0, 16, task_index, 2, WHITE, BLACK, 16);
         while (get_task_status(taskList[task_index]) == TASK_IDLE_STATE){
-			vTaskDelay(100);
+			vTaskDelay(80);
             //启动当前任务,如何发现没有开启，再次发送开启指令
             task_switch(taskList[task_index]);
+			vTaskDelay(80);
         }
    	}
 
@@ -189,50 +196,49 @@ void task_taskSchedule(void* pvParameters){
 
 void task_comUart(void* pvParameters){
 	while (1){
-		if(TopData.xy_pos_sta == 1){
-			//向OV查询
-			while (OV_Struct.xy_sta != 1){
-				OV_SendData(putM_count%3 + 3 + '0');
-				vTaskDelay(50);
-			}	
-			OV_Struct.xy_sta = 0;	
+		LED[1]->reverse(LED[1]);
+		if(XY_GPIO_READ() == 1){
+				OV_SendData(Arr_CarryColorSeq[RingMovSeq][putM_count % 3 + 1] + 3);
+		}
+		if(OV_Struct.xy_sta == 1){
+			vTaskSuspend(task_taskSchedule_handle);
+			vTaskDelay(80);
 			//转发给底板
 			replyXYPos(OV_Struct.sPx, OV_Struct.sPy);
-			TopData.xy_pos_sta = 0;
+			OV_Struct.xy_sta = 0;
+			vTaskDelay(80);
+			vTaskResume(task_taskSchedule_handle);
 		}
-		vTaskDelay(50);
+		vTaskDelay(100);
 	}
+   	vTaskDelete(task_comUart_handle);
+	taskEXIT_CRITICAL();
 }
+
 
 
 void task_identifyQRcode(void* pvParameters){
 	taskSta[TASK_identifyQRcode] = TASK_BUSY_STATE;
-	LED[0]->off(LED[0]);
 	while (1){
 		if(QRCode.GetITSta == 1){
-			//delay_xms(1000);
 			for(int i = 0; i < 3; i++){ 
 				Arr_CarryColorSeq[FIRST_SEQ][i+1]  = QRCode.MSG_Buff[i] - '0';
 				Arr_CarryColorSeq[SECOND_SEQ][i+1] = QRCode.MSG_Buff[i+4] - '0';
 			}
 			showQRCodeMessage(QRCode.MSG_Buff);
-
 			//向底板发送搬运顺序
-			int tmp_i = 6;                            	// while (TopData.sta_CarrySeq == 1){
+			int tmp_i = 5;                            	// while (TopData.sta_CarrySeq == 1){
 			while (tmp_i--){                            // 	sendCarrySeq();
 				sendCarrySeq();                         // 	vTaskDelay(80);
 				vTaskDelay(60);                         // }
 			}
 			TopData.sta_CarrySeq = 0;
-			
 			break;
-		}else{
-			//未识别到
+		}else
 			LCD_ShowString(0, 0, "Failed       ", WHITE, BLACK, 16, 0);
-		}
+		
 		vTaskDelay(100);
 	}
-	LED[0]->on(LED[0]);
 	taskSta[TASK_identifyQRcode] = TASK_IDLE_STATE;
 	vTaskDelete(task_identifyQRcode_handle);
     taskEXIT_CRITICAL();
@@ -243,20 +249,20 @@ void task_identify_grab_Material(void* pvParameters){
 	taskSta[TASK_identify_grab_Material] = TASK_BUSY_STATE;
 	RingMovSeq = task_u;
 	for(int i=1;i<=3;++i){
-		LCD_ShowIntNum(0,48,RingMovSeq,2,WHITE,BLACK,16);
-		LCD_ShowIntNum(36,48,Arr_CarryColorSeq[RingMovSeq][i],2,WHITE,BLACK,16);
+		GPIO_SetBits(GPIOD,GPIO_Pin_3);
+		// LCD_ShowIntNum(0,48,RingMovSeq,2,WHITE,BLACK,16);
+		// LCD_ShowIntNum(36,48,Arr_CarryColorSeq[RingMovSeq][i],2,WHITE,BLACK,16);
 		OV_Struct.TaskState = 0;
 		while (OV_Struct.TaskState != 'y'){
-			LED[0]->reverse(LED[0]);
 			OV_Struct.TaskState = 0;	
 			OV_SendData(Arr_CarryColorSeq[RingMovSeq][i]);
 			vTaskDelay(80);
 		}
+		GPIO_ResetBits(GPIOD,GPIO_Pin_3);
 		OV_Struct.TaskState = 0;
 		GrabMate_to_MT(Arr_CarryColorSeq[RingMovSeq][i], True);
 		vTaskDelay(200);
 	}
-	LED[0]->on(LED[0]);
 	task_u++;
 	taskSta[TASK_identify_grab_Material] = TASK_IDLE_STATE;
 	vTaskDelete(task_identify_grab_Material_handle);
@@ -266,11 +272,11 @@ void task_identify_grab_Material(void* pvParameters){
 int idfCC_conunt = 0;
 void task_indetifyCrileColor(void* pvParameters){
 	taskSta[TASK_indetifyCrileColor] = TASK_BUSY_STATE;
-
-	while (OV_Struct.circleColor == 0){
-		OV_SendData(0x07);
-		vTaskDelay(80);
-	}
+	GPIO_SetBits(GPIOD, GPIO_Pin_3);
+	// while (OV_Struct.circleColor == 0){
+	// 	OV_SendData(0x07);
+	// 	vTaskDelay(80);
+	// }
 	//识别色环颜色
 	Arr_ZoneColorSeq[idfCC_conunt/2][idfCC_conunt%2 + 1] = OV_Struct.circleColor;
 	OV_Struct.circleColor = 0;
@@ -363,14 +369,12 @@ void task_putMaterial(void* pvParameters){
 	
 	putM_count++;
 
-
 	taskSta[TASK_putMaterial] = TASK_IDLE_STATE;
 	vTaskDelete(task_putMaterial_handle);
     taskEXIT_CRITICAL();
 }
 
 void USART1_IRQHandler(void){
-	
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET){
         USART_ClearITPendingBit(USART1,USART_IT_RXNE);
         TopData.RxBuff[TopData.RxCnt++] = USART1->DR;
@@ -378,11 +382,7 @@ void USART1_IRQHandler(void){
 			
             switch (TopData.RxBuff[1]){
             case 0xC3:
-                //TopData.tmp_taskName = TopData.RxBuff[2];
-                //TopData.tmp_taskSta = TopData.RxBuff[3];
 				taskSta[TopData.RxBuff[2]] = TopData.RxBuff[3];
-				//TopData.tmp_taskName = 0;
-				//TopData.tmp_taskSta = 0;
                 break;
             case 0xD4:
                 TopData.sta_CarrySeq = TopData.RxBuff[2];
@@ -394,7 +394,8 @@ void USART1_IRQHandler(void){
                 TopData.sta_TzoneSeq = TopData.RxBuff[2];
                 break;
             case 0x11:
-                TopData.xy_pos_sta = TopData.RxBuff[2];
+				LED[2]->reverse(LED[2]);
+                TopData.xy_pos_sta = 1;
                 break;
             }
         }
@@ -405,4 +406,41 @@ void USART1_IRQHandler(void){
         
 	}
 }
+
+
+
+// void USART1_IRQHandler(void){
+//     if(USART_GetITStatus(USART1, USART_IT_IDLE) != RESET){
+//         USART_ClearITPendingBit(USART1, USART_IT_IDLE); // 清除空闲中断标志位
+        
+//         DMA_Cmd(DMA2_Stream5, DISABLE); /* 关闭DMA，防止干扰 */ 
+//         uint16_t reDataLength = COM_MSG_LEN - DMA_GetCurrDataCounter(DMA2_Stream5);
+
+//         if(reDataLength > 0 && TopData.RxBuff[0] == 0x66 && TopData.RxBuff[COM_MSG_LEN-1] == 0x88) {
+//             switch (TopData.RxBuff[1]){
+//                 case 0xC3:
+//                     taskSta[TopData.RxBuff[2]] = TopData.RxBuff[3];
+//                     break;
+//                 case 0xD4:
+//                     TopData.sta_CarrySeq = TopData.RxBuff[2];
+//                     break;
+//                 case 0xE5:
+//                     TopData.sta_EzoneSeq = TopData.RxBuff[2];
+//                     break;
+//                 case 0xF6:
+//                     TopData.sta_TzoneSeq = TopData.RxBuff[2];
+//                     break;
+//                 case 0x11:
+//                     LED[2]->reverse(LED[2]);
+//                     TopData.xy_pos_sta = 1;
+//                     break;
+//             }
+//         }
+//         DMA2_Stream5->NDTR = COM_MSG_LEN; // 重置 DMA 传输计数器
+//         DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5);  // 清DMA标志位 
+//         DMA_Cmd(DMA2_Stream5, ENABLE);	 
+// 		USART_ReceiveData(USART1);// 清除空闲中断标志位
+//     }
+// }
+
 #endif //TOP_LEVEL

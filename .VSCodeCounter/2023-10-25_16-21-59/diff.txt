@@ -1,0 +1,32 @@
+Date : 2023-10-25 16:21:59
+Directory : c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main
+Total : 6 files,  33 codes, 9 comments, -7 blanks, all 35 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| C        |          6 |         33 |          9 |         -7 |         35 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                        | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                           |          6 |         33 |          9 |         -7 |         35 |
+| hw                                                                                                          |          4 |         26 |         15 |         -5 |         36 |
+| usr                                                                                                         |          2 |          7 |         -6 |         -2 |         -1 |
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                    | language | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main\hw\bottom_task.c   | C        |          1 |         -2 |          3 |          2 |
+| c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main\hw\openmv.c        | C        |         25 |          3 |          0 |         28 |
+| c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main\hw\task_schedule.c | C        |         -3 |          3 |         -1 |         -1 |
+| c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main\hw\top_task.c      | C        |          3 |         11 |         -7 |          7 |
+| c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main\usr\config.h       | C        |          6 |         -6 |          0 |          0 |
+| c:\Users\kafei\Desktop\工训物流\STM32F407STDLIB\AutomatedGuidedLogisticsHandlingVehicle-main\usr\main.c         | C        |          1 |          0 |         -2 |         -1 |
+| Total                                                                                                       |          |         33 |          9 |         -7 |         35 |
++-------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

@@ -844,9 +844,9 @@ void MotorTIMCtrl(MOTOR_UART_ADDR_ENUM Motor_addr, MOTOR_DIR_ENUM Motor_dir,
 void MOTOR_LF_TIM_DMA_IRQHandler(void){
 if (DMA_GetITStatus(MOTOR_LF_DMA_STREAM, MOTOR_LF_TIM_DMA_IT_TCIF)){
     if((flag_dma_motor[MOTOR_LF_ADDR] >=  StepCycles[MOTOR_LF_ADDR] && StepCyclesRema[MOTOR_LF_ADDR] == 0) || flag_dma_motor[MOTOR_LF_ADDR] > StepCycles[MOTOR_LF_ADDR] ){
-            TIM_Cmd(MOTOR_LF_TIM, DISABLE);
-            DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
-            flag_dma_motor[MOTOR_LF_ADDR] = 0;
+        TIM_Cmd(MOTOR_LF_TIM, DISABLE);
+        DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
+        flag_dma_motor[MOTOR_LF_ADDR] = 0;
     }else if(flag_dma_motor[MOTOR_LF_ADDR] == StepCycles[MOTOR_LF_ADDR] && StepCyclesRema[MOTOR_LF_ADDR] != 0){
         flag_dma_motor[MOTOR_LF_ADDR]++;
         TIM_Cmd(MOTOR_LF_TIM, DISABLE);
@@ -959,8 +959,6 @@ void MOTOR_RR_TIM_DMA_IRQHandler(void){
   }
 }
 
-
-
 void stop_all_motor(void){
     DMA_Cmd(MOTOR_LF_DMA_STREAM, DISABLE);
     TIM_Cmd(MOTOR_LF_TIM, DISABLE);
@@ -1069,7 +1067,7 @@ void MoveInLine_PID(double vel, double distance, bool isOSTime){
     double  re    = (uint32_t)(distance -  loop_i * 0.05);
     for(int i = 0;i <=loop_i; i++){
 		double yaw = HWT101_Struct.YawAngle;
-		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
+		int tmp_dw = (int)tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
 		if(_abs(tmp_dw) > 200) tmp_dw = 200 *_sign(tmp_dw);
         //if(i == loop_i && vel < 0) Kinematic_Analysis_Pos(vel-0.6, 0, 0, (re+0.05)*_sign_f(vel), 0,0);
 		if(i == loop_i) Kinematic_Analysis_Pos(vel, 0, 0, re*_sign_f(vel), 0,0);
@@ -1132,7 +1130,7 @@ void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime){
     double  re_y    = (uint32_t)(Dy -  loop_i * 0.05 * Dy / Ds);
     for(uint32_t i = 0;i <=loop_i; i++){
 		double yaw = HWT101_Struct.YawAngle;
-		int tmp_dw = tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
+		int tmp_dw = (int)tmp_pid[0]->run(tmp_pid[0], 0, yaw);		
 		if(_abs(tmp_dw) > 200) tmp_dw = 200 *_sign(tmp_dw);
 		if(i == loop_i) Kinematic_Analysis_Pos(Vx, Vy, 0, re_x, re_y, 0);
 		else Kinematic_Analysis_Pos(Vx, Vy, -tmp_dw /100.0, 0.8*_sign_f(Dx), 0.8*_sign_f(Dy), 0.2*_sign_f(-tmp_dw));
@@ -1148,28 +1146,20 @@ void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime){
     stop_all_motor();
 }
 
-void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
-    ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 5, 0, 0);
-    ((pStruct_PID)xy_pid[1])->setPar(xy_pid[0], 5, 0, 0);
-    int c_x =0, c_y=0 ;
-    int tmp_i = 30;
-    while (tmp_i--){
-        while (BottomData.sta_xy !=1){
-            inqCurXYPos();
-            if(isOSTime)    vTaskDelay(50);
-            else            delay_xms(50);    
-        }
-        BottomData.sta_xy = 0;
-        c_x = BottomData.px;
-        c_y = BottomData.px;
-        if(_abs(c_x - t_x) <= 1 && _abs(t_y - t_y) <= 1)
-            break;
-        int dx = xy_pid[0]->run(xy_pid[0], c_x, t_x);
-        int dy = xy_pid[0]->run(xy_pid[0], c_y, t_y);	
-	    if(_abs(dx) > 400) dx = 400 *_sign(dx);
-        if(_abs(dy) > 400) dy = 400 *_sign(dy);
-        TranslationMove(TIM_CTRL, 0.5, dx, dy, isOSTime);
-    }
+void MoveXy_PID(int cx ,int cy, int tx, int ty){
+    ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 0.1, 0, 0);
+    ((pStruct_PID)xy_pid[1])->setPar(xy_pid[1], 0.1, 0, 0);
+    double vx = (double)xy_pid[0]->run(xy_pid[0], (double)cx, (double)tx);
+    double vy = (double)xy_pid[1]->run(xy_pid[1], (double)cy, (double)ty);
+	if(_abs_f(vx) > 0.8) vx = 0.8 *_sign_f(vx);
+    if(_abs_f(vy) > 0.8) vy = 0.8 *_sign_f(vy);
+	Kinematic_Analysis_Pos(vx, vy, 0, 0.8*_sign_f(vx), 0.8*_sign_f(vy), 0);
+	MotorTIMCtrl(MOTOR_LF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[0])+1)/2), (uint32_t)(800*_abs_f(vel_weel[0])), 0, (uint32_t)(800*_abs_f(pos_weel[0])), False, False);
+	MotorTIMCtrl(MOTOR_LR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[1])+1)/2), (uint32_t)(800*_abs_f(vel_weel[1])), 0, (uint32_t)(800*_abs_f(pos_weel[1])), False, False);
+	MotorTIMCtrl(MOTOR_RF_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[2])+1)/2), (uint32_t)(800*_abs_f(vel_weel[2])), 0, (uint32_t)(800*_abs_f(pos_weel[2])), False, False);
+	MotorTIMCtrl(MOTOR_RR_ADDR, (MOTOR_DIR_ENUM)((_sign_f(vel_weel[3])+1)/2), (uint32_t)(800*_abs_f(vel_weel[3])), 0, (uint32_t)(800*_abs_f(pos_weel[3])), False, False);
+	Fun_En_DMA_Motor(MOTOR_ALL_ADDR);
+    vTaskDelay(100);
     stop_all_motor();
 }
 

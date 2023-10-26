@@ -48,6 +48,7 @@ typedef struct _OV_struct{
 
 extern OV_MSG_Sturct OV_Struct;
 
+void Fill_inLight_init(void);
 void ToOpenMV_uart_init(uint32_t bound);
 void OV_SendData(char DataByte);
 

@@ -9,6 +9,7 @@ Arr_pLedStruct LED = NULL;
 void bsp_init(void){
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	delay_init();
+	
     MOTOR_LF_TIM_Init();
 	MOTOR_LR_TIM_Init();
 	MOTOR_RF_TIM_Init();
@@ -21,7 +22,7 @@ void bsp_init(void){
 	
     IMU_uart_init(9600);
 	BottomComUartInit(9600);
-	
+	XYPos_GPIO_init();
 	LED = Create_Arr_LedStruct(3);
 
     LED[0]->SetEnLevel = SET_EN_LOW_LEVEL;
@@ -185,6 +186,7 @@ void task_moveXYPosition_start(void){
 void task_taskSchedule(void* pvParameters){
 	//用来处理上层板发来的数据
    	while (1){
+		LED[1]->reverse(LED[1]);
 		if(BottomData.needStartTask != 0){
 			taskSta[BottomData.needStartTask] = TASK_BUSY_STATE;
 			task_switch(BottomData.needStartTask);
@@ -194,7 +196,7 @@ void task_taskSchedule(void* pvParameters){
 			replyCurTaskStatus(BottomData.needRelyTask);
 			BottomData.needRelyTask = 0;
 		}
-    	vTaskDelay(50);
+    	vTaskDelay(80);
    	}
 	
    	vTaskDelete(task_taskSchedule_handle);
@@ -316,7 +318,7 @@ void task_moveContorCricle(void* pvParameters){
 	taskSta[TASK_moveContorCricle] = TASK_BUSY_STATE;
 
 	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS, 0, True);
-	vTaskDelay(1000);
+	vTaskDelay(500);
 
 	taskSta[TASK_moveContorCricle] = TASK_IDLE_STATE;
 	vTaskDelete(task_moveContorCricle_handle);
@@ -367,11 +369,45 @@ void task_moveXYPosition(void* pvParameters){
 	//调整xy位置
 	//320*240   160 120
 	//160*120   80  60
-	AdjustXYPostion(160, 120, True);
+	AdjustXYPostion(150, 120, True);
 	//vTaskDelay(2000);
 	taskSta[TASK_moveXYPosition] = TASK_IDLE_STATE ;
 	vTaskDelete(task_moveXYPosition_handle);
     taskEXIT_CRITICAL();
+}
+
+void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
+    ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 1, 0, 0);
+    ((pStruct_PID)xy_pid[1])->setPar(xy_pid[1], 1, 0, 0);
+    int c_x =0, c_y=0 ;
+    int tmp_i = 15;
+    while (tmp_i--){
+		//vTaskSuspend(task_taskSchedule_handle);
+        while (BottomData.sta_xy !=1){
+			LED[0]->reverse(LED[0]);
+            // inqCurXYPos();
+			XY_GPIO_CTRL(1);
+            if(isOSTime)    vTaskDelay(200);
+            else            delay_xms(200);    
+        }
+		//vTaskResume(task_taskSchedule_handle);
+		XY_GPIO_CTRL(0);
+        BottomData.sta_xy = 0;
+		
+        c_x = BottomData.px;
+        c_y = BottomData.py;
+	
+        double dx = (double)xy_pid[1]->run(xy_pid[1], (double)c_x, (double)t_x);
+        double dy = (double)xy_pid[0]->run(xy_pid[0], (double)c_y, (double)t_y);	
+		dx = dx*0.0008;
+		dy = dy*0.0008;
+	    if(_abs_f(dx) > 1) dx = 1 *_sign_f(dx);
+        if(_abs_f(dy)> 1) dy = 1 *_sign_f(dy);
+		
+        TranslationMove(TIM_CTRL, 0.12, dx, dy, isOSTime);
+		vTaskDelay(200);
+    }
+    stop_all_motor();
 }
 
 
@@ -423,8 +459,9 @@ void USART6_IRQHandler(void){
 				replyRecTzoneRingSta();
                 break;
 			case 0x11:
-				BottomData.px=BottomData.RxBuff[2]*100+BottomData.RxBuff[3]*10+BottomData.RxBuff[4];
-				BottomData.py=BottomData.RxBuff[5]*100+BottomData.RxBuff[6]*10+BottomData.RxBuff[7];
+				BottomData.sta_xy = 1;
+				BottomData.px=(BottomData.RxBuff[2]-'0')*100+(BottomData.RxBuff[3]-'0')*10+(BottomData.RxBuff[4]-'0');
+				BottomData.py=(BottomData.RxBuff[5]-'0')*100+(BottomData.RxBuff[6]-'0')*10+(BottomData.RxBuff[7]-'0');
             default:
                 memset(BottomData.RxBuff,0,sizeof(BottomData.RxBuff));
                 break;
@@ -438,4 +475,5 @@ void USART6_IRQHandler(void){
 	}
 }
 
+		
 #endif  //BOTTOM_LEVEL

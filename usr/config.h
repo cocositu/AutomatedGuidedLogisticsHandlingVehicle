@@ -3,8 +3,8 @@
 
 #define STM32_STD_DRVER 
 #define STEPPER_MOTOR_DRIVER
-//#define TOP_LEVEL
-#define BOTTOM_LEVEL
+#define TOP_LEVEL
+//#define BOTTOM_LEVEL
 
 #ifdef  STM32_STD_DRVER
 
@@ -34,6 +34,12 @@ typedef uint8_t bool;
 // } bool;
 
 #ifdef TOP_LEVEL
+
+#define XYADJUST_GPIO                           GPIOD
+#define XYADJUST_GPIO_PIN                       GPIO_Pin_0
+#define XYADJUST_GPIO_CLK                       RCC_AHB1Periph_GPIOD
+#define XYADJUST_FUN_GPIO_CLK(NewState)         RCC_AHB1PeriphClockCmd(XYADJUST_GPIO_CLK , NewState)
+
 
 #define QRCODE_UART                      UART5
 #define QRCODE_GPIO_AF_UART              GPIO_AF_UART5
@@ -138,17 +144,22 @@ typedef uint8_t bool;
 // #define ToOPENMV_UART_RES_ADRESS                   UART4->DR
 // #define ToOPENMV_UART_RX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
 // #define ToOPENMV_UART_RX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_RX_DMA_CLK , NewState)
-// #define ToOPENMV_UART_TX_DMA                       DMA1
-// #define ToOPENMV_UART_TX_DMA_STREAM                DMA1_Stream4
-// #define ToOPENMV_UART_TX_DMA_CHANNEL               DMA_Channel_4
-// #define ToOPENMV_UART_SEND_ADRESS                  UART4->DR
-// #define ToOPENMV_UART_TX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
-// #define ToOPENMV_UART_TX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_DMA_CLK , NewState)
+#define ToOPENMV_UART_TX_DMA                       DMA1
+#define ToOPENMV_UART_TX_DMA_STREAM                DMA1_Stream4
+#define ToOPENMV_UART_TX_DMA_CHANNEL               DMA_Channel_4
+#define ToOPENMV_UART_SEND_ADRESS                  UART4->DR
+#define ToOPENMV_UART_TX_DMA_CLK                   RCC_AHB1Periph_DMA1                             
+#define ToOPENMV_UART_TX_FUN_DMA_CLK(NewState)     RCC_AHB1PeriphClockCmd(ToOPENMV_UART_TX_DMA_CLK , NewState)
 
 
 #endif //TOP_LEVEL
 
 #ifdef BOTTOM_LEVEL
+
+#define XYADJUST_GPIO                           GPIOB
+#define XYADJUST_GPIO_PIN                       GPIO_Pin_13
+#define XYADJUST_GPIO_CLK                       RCC_AHB1Periph_GPIOB
+#define XYADJUST_FUN_GPIO_CLK(NewState)         RCC_AHB1PeriphClockCmd(XYADJUST_GPIO_CLK , NewState)
 
 #define MOTOR_LF_EN_GPIO                     GPIOA
 #define MOTOR_LF_EN_GPIO_PIN                 GPIO_Pin_4

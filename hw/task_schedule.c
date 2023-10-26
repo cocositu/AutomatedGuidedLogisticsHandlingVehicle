@@ -1,6 +1,6 @@
 #include"task_schedule.h"
 #include "string.h"
-
+#include"openmv.h"
 uint8_t RingMovCount_total =0;
 uint8_t RingMovCount = 1;
 uint8_t RingMovZone = 0;
@@ -9,7 +9,7 @@ uint8_t Arr_CarryColorSeq[2][4] ={0};
 uint8_t Arr_ZoneColorSeq[2][4] ={0};
 uint8_t Arr_ABS_ZoneMove[2][2][7] ={0};
 int8_t Arr_REL_ZoneMove[2][2][7] ={0};
-
+bool xy_flag = 0;
 int task_index = 0;
 uint8_t taskSta[0xFF]={0};
 
@@ -71,79 +71,79 @@ uint8_t taskList[] = {
     TASK_indetifyCrileColor,
     //28移动到暂存搬运的第一个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //29调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //30放置物料
     TASK_putMaterial,
-    //移动到暂存搬运的第二个位置
+    //31移动到暂存搬运的第二个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //32调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //33放置物料
     TASK_putMaterial,
-    //移动到暂存搬运的第三个位置
+    //34移动到暂存搬运的第三个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //35调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //36放置物料
     TASK_putMaterial,
-    //从暂存区到物料区
+    //37从暂存区到物料区
     TASK_moveTzoneToMzone,
-    //识别抓取物料
+    //38识别抓取物料
      TASK_identify_grab_Material,
-    //物料区到粗放区
+    //39物料区到粗放区
     TASK_moveMzoneToEzone,
-    //移动到粗放搬运的第一个位置
+    //40移动到粗放搬运的第一个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //41调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //42放置物料
     TASK_putMaterial,
-    //移动到粗放搬运的第二个位置
+    //43移动到粗放搬运的第二个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //44调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //45放置物料
     TASK_putMaterial,
-    //移动到粗放搬运的第三个位置
+    //46移动到粗放搬运的第三个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //47调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //48放置物料
     TASK_putMaterial,
-    //移动到粗放搬运的第一个位置
+    //49移动到粗放搬运的第一个位置
     TASK_moveBetweenCricle,
-    //抓取物料
+    //50抓取物料
     TASK_grabMaterial,
-    //移动到粗放搬运的第二个位置
+    //51移动到粗放搬运的第二个位置
     TASK_moveBetweenCricle,
-    //抓取物料
+    //52抓取物料
     TASK_grabMaterial,
-    //移动到粗放搬运的第三个位置
+    //53移动到粗放搬运的第三个位置
     TASK_moveBetweenCricle,
-    //抓取物料
+    //54抓取物料
     TASK_grabMaterial,
-    //从粗放区到暂存区
+    //55从粗放区到暂存区
     TASK_moveEzoneToTzone,
-    //移动到暂存搬运的第一个位置
+    //56移动到暂存搬运的第一个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //57调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //58放置物料
     TASK_putMaterial,
-    //移动到暂存搬运的第二个位置
+    //59移动到暂存搬运的第二个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //60调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //61放置物料
     TASK_putMaterial,
-    //移动到暂存搬运的第三个位置
+    //62移动到暂存搬运的第三个位置
     TASK_moveBetweenCricle,
-    //调整位置
+    //63调整位置
     TASK_moveXYPosition,
-    //放置物料
+    //64放置物料
     TASK_putMaterial,
-    //从暂存区到启停区
+    //65从暂存区到启停区
     TASK_moveTzoneToSzone 
 };
 
@@ -169,7 +169,7 @@ void CalMovBetweenRings(int zone, int seq, int init_pos){
 
 uint8_t get_task_status(uint8_t task_name){
     #ifdef TOP_LEVEL
-    if(task_name > 0xA0){
+    if(task_name > 0xA0 && (TopData.xy_pos_sta == 0 || task_name != TASK_moveXYPosition)){
         //串口发送数据获取任务运行状态,装入taskSta[task_name]中
         sendInquireTaskSta(task_name);
     }
@@ -180,6 +180,20 @@ uint8_t get_task_status(uint8_t task_name){
 
 #ifdef TOP_LEVEL
 TopDataType TopData = {0};
+
+void XYPos_GPIO_init(void){
+    XYADJUST_FUN_GPIO_CLK(ENABLE);
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
+    GPIO_InitStructure.GPIO_Pin   = XYADJUST_GPIO_PIN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;	// 上下拉选择：浮空
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(XYADJUST_GPIO, &GPIO_InitStructure);
+}
+
+bool XY_GPIO_READ(void){
+    return GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_0);
+}
 
 void TopComUartInit(uint32_t bound){
   
@@ -207,15 +221,16 @@ void TopComUartInit(uint32_t bound){
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_InitStructure.USART_Mode       = USART_Mode_Rx | USART_Mode_Tx;	
     USART_Init(USART1, &USART_InitStructure); 
-    USART_Cmd(USART1, ENABLE);
+    // USART_Cmd(USART1, ENABLE);
     
     NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 1;		
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			
     NVIC_Init(&NVIC_InitStructure);	
-    USART_ITConfig(USART1, USART_IT_TC, DISABLE);
-    USART_ITConfig(USART1, USART_IT_RXNE,ENABLE);	
+
+    // USART_ITConfig(USART1, USART_IT_TC, DISABLE);
+    // USART_ITConfig(USART1, USART_IT_RXNE,ENABLE);	
  
     DMA_InitTypeDef DMA_InitStructure;
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
@@ -237,10 +252,37 @@ void TopComUartInit(uint32_t bound){
     DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
     DMA_Init(DMA2_Stream7, &DMA_InitStructure);
    
-   	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);  		
-    DMA_Cmd(DMA2_Stream7, DISABLE);
-    USART_Cmd(USART1, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+    DMA_DeInit(DMA2_Stream5);
+    DMA_InitStructure.DMA_Channel            = DMA_Channel_4;
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&USART1->DR;
+    DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)TopData.RxBuff;
+    DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralToMemory;
+    DMA_InitStructure.DMA_BufferSize         = COM_MSG_LEN;
+    DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
+    DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;
+    DMA_InitStructure.DMA_Priority           = DMA_Priority_Medium;
+    DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable;
+    DMA_InitStructure.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full;
+    DMA_InitStructure.DMA_MemoryBurst        = DMA_MemoryBurst_Single;
+    DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
+    DMA_Init(DMA2_Stream5, &DMA_InitStructure);
 
+    USART_ClearFlag(USART1, USART_FLAG_TC); //清除发送完成标志
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);			//禁止USART6接收不为空中断
+	// USART_ITConfig(USART1, USART_IT_TXE, DISABLE);			//禁止USART6发送空中断
+	// USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);			//开启USART6空闲中断
+	// USART_ITConfig(USART1, USART_IT_TC, DISABLE);			//禁止USART6传输完成中断
+	
+	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);  		
+	// USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);  	    //使能串口的DMA
+    DMA_Cmd(DMA2_Stream7, DISABLE);
+    // DMA_Cmd(DMA2_Stream5, ENABLE);
+
+    USART_Cmd(USART1, ENABLE);
 }
 
 void TopSendData(uint8_t  DataBuff[], uint8_t DataLenth){
@@ -322,9 +364,9 @@ void replyXYPos(uint8_t dx[], uint8_t dy[]){
     TopData.TxBuff[2] = dx[0];
     TopData.TxBuff[3] = dx[1];
     TopData.TxBuff[4] = dx[2];
-    TopData.TxBuff[2] = dy[0];
-    TopData.TxBuff[3] = dy[1];
-    TopData.TxBuff[4] = dy[2];
+    TopData.TxBuff[5] = dy[0];
+    TopData.TxBuff[6] = dy[1];
+    TopData.TxBuff[7] = dy[2];
     TopData.TxBuff[COM_MSG_LEN-1] = 0x88;
     TopSendData(TopData.TxBuff, COM_MSG_LEN);
 }
@@ -344,8 +386,24 @@ void sendInqSta(uint8_t inq_cmd){
 #endif // TOP_LEVEL
 
 #ifdef BOTTOM_LEVEL
-
 BottomDataType BottomData = {0};
+
+
+void XYPos_GPIO_init(void){
+  	GPIO_InitTypeDef  GPIO_InitStructure;
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能PORTA~E,PORTG时钟
+  	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
+ 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;//100MHz
+  	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;//上拉
+  	GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+}
+
+void XY_GPIO_CTRL(bool level){
+    level?GPIO_SetBits(XYADJUST_GPIO, XYADJUST_GPIO_PIN):GPIO_ResetBits(XYADJUST_GPIO, XYADJUST_GPIO_PIN);
+}
+
 
 void BottomComUartInit(uint32_t bound){
   

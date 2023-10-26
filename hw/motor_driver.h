@@ -2,6 +2,7 @@
 #define _MOTOR_DRIVER_H_
 
 #include"config.h"
+#include"pid.h"
 
 #ifdef STEPPER_MOTOR_DRIVER
 
@@ -70,6 +71,8 @@ extern MotorUartBufferType *MotorLRUartBuffer;
 extern MotorUartBufferType *MotorRFUartBuffer;
 extern MotorUartBufferType *MotorRRUartBuffer;
 
+extern Arr_pStruct_Pos_PID xy_pid;
+
 void MOTOR_LF_TIM_Init(void);
 void MOTOR_LR_TIM_Init(void);
 void MOTOR_RF_TIM_Init(void);
@@ -102,7 +105,7 @@ void MoveInLine_PID(double vel, double dsitance, bool isOSTime);
 void TranslationMove(MOTOR_TYPE_ENUM Motor_ctrl, double V, double Dx, double Dy, bool isOSTime);
 void TranslationMove_PID(double V, double Dx, double Dy, bool isOSTime);
 void AdjustXYPostion(int t_x, int t_y, bool isOSTime);
-
+void MoveXy_PID(int cx ,int cy, int tx, int ty);
 
 #endif //STEPPER_MOTOR_DRIVER
 #endif //_MOTOR_DRIVER_H_

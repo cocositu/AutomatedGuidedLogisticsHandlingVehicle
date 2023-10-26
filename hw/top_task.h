@@ -29,6 +29,7 @@ static TaskHandle_t task_indetifyCrileColor_handle      = NULL;
 static TaskHandle_t task_grabMaterial_handle            = NULL;
 static TaskHandle_t task_putMaterial_handle             = NULL;
 
+extern Arr_pLedStruct LED ;
 
 void bsp_init(void);
 void task_switch(uint8_t task_name);

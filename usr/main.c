@@ -45,6 +45,7 @@
 
 #ifdef  TOP_LEVEL
 
+
 int main(void){
 	bsp_init();
 
@@ -70,7 +71,7 @@ int main(void){
 int main(void){
 	bsp_init();
 	pid_init();
-
+	delay_xms(5000);
 	
 	task_taskSchedule_start();
 	// TranslationMove(UART_CTRL, 1, 0.607, 0, False);

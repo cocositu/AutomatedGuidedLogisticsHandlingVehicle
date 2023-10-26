@@ -59,7 +59,7 @@ extern uint8_t RingMovCount_total;
 extern uint8_t RingMovCount;
 extern uint8_t RingMovZone;
 extern uint8_t RingMovSeq;
-
+extern bool xy_flag ;
 
 #ifdef TOP_LEVEL
 //定长数据 
@@ -81,6 +81,8 @@ typedef struct {
 
 extern TopDataType TopData;
 
+void XYPos_GPIO_init(void);
+bool XY_GPIO_READ(void);
 void TopComUartInit(uint32_t bound);
 void TopSendData(uint8_t  DataBuff[], uint8_t DataLenth);
 void sendStartTask(uint8_t task_name);
@@ -119,6 +121,8 @@ typedef struct {
 
 extern BottomDataType BottomData;
 
+void XYPos_GPIO_init(void);
+void XY_GPIO_CTRL(bool level);
 void BottomComUartInit(uint32_t bound);
 void sendData_Bottom(uint8_t   DataBuff[], uint32_t DataLenth);
 void replyCurTaskStatus(uint8_t task_name);
