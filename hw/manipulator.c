@@ -155,47 +155,47 @@ void init_MechArm_and_MateTray(bool isOSTime){
 //materiel tray
 void GrabMate_to_MT(uint8_t x, bool isOSTime){
     alone_Rotate_MateTray(x,isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 1320, 1);//物料在转盘抓取
+    ManStepUartCtrl(0,0x400, 0xEE, 1320, 1);//物料在转盘抓取
     istime(500, isOSTime);
-    moveServo(1, Claw_p1, 300);
-    istime(320, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);//升到最上方
+    moveServo(1, Claw_p1, 150);
+    istime(170, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);//升到最上方
     istime(50, isOSTime);
     moveServo(2, CP_p2, 800);//放物料盘的位置//“延时不要改！！！”
     istime(820, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 700, 1);//物料放盘
+    ManStepUartCtrl(0,0x400, 0xEE, 700, 1);//物料放盘
     istime(300, isOSTime);
-    moveServo(1, Claw_p2, 300);//物料松开
-    istime(320, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);//升到最上方
+    moveServo(1, Claw_p2, 200);//物料松开
+    istime(220, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);//升到最上方
     istime(100, isOSTime);
     moveServo(1, Claw_p3, 300); //爪子张开
     istime(300, isOSTime);
-    moveServo(2, CP_p1, 1000);//回到识别转盘位置
-    istime(1100, isOSTime);
+    moveServo(2, CP_p1, 500);//回到识别转盘位置
+    istime(520, isOSTime);
 }
 
 
 //ground
 void GrabMate_to_G(uint8_t x, bool isOSTime){
     alone_Rotate_MateTray(x,isOSTime);
-    ManStepUartCtrl(0,0x400, 0xE0, 2950, 1);//从地面抓取
-    istime(1000, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 2950, 1);//从地面抓取
+    istime(800, isOSTime);
     moveServo(1, Claw_p1, 300);//
     istime(310, isOSTime);
-    ManStepUartCtrl(0,0x400, 0xE0, 0, 1);//升到最上方
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);//升到最上方
     istime(800, isOSTime);
-    moveServo(2, CP_p2, 900);//放物料盘的位置//“延时不要改！！！”
-    istime(920, isOSTime);
-    ManStepUartCtrl(0,0x400, 0xE0, 700, 1);//物料放盘1
-    istime(800, isOSTime);
+    moveServo(2, CP_p2, 800);//放物料盘的位置//“延时不要改！！！”
+    istime(820, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 700, 1);//物料放盘1
+    istime(500, isOSTime);
     moveServo(1, Claw_p2, 300);//物料松开
     istime(320, isOSTime);
-    ManStepUartCtrl(0,0x400, 0xE0, 0, 1);//升到最上方
-    istime(800, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);//升到最上方
+    istime(500, isOSTime);
     moveServo(1, Claw_p3, 300); //爪子张开
     istime(320, isOSTime);
-    moveServo(2, CP_p1, 800);//回到识别转盘位置
+    moveServo(2, CP_p1, 500);//回到识别转盘位置
 }
 //物料从物料盘抓到地面  （物料盘抓到地面的时候）
 void PutMate_to_G(uint8_t x, bool isOSTime){
@@ -203,7 +203,7 @@ void PutMate_to_G(uint8_t x, bool isOSTime){
     istime(100, isOSTime);
     moveServo(1, Claw_p2, 300);//抓取位置
     istime(300, isOSTime);  
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);//物料在转盘抓取
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);//物料在转盘抓取
     moveServo(2, CP_p2, 800);//
     istime(820, isOSTime);
     // moveServo(1, Claw_p2, 300);//物料松开
@@ -211,24 +211,24 @@ void PutMate_to_G(uint8_t x, bool isOSTime){
     istime(400, isOSTime);
     moveServo(1, Claw_p1, 200);//物料抓取
     istime(220, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);
-    istime(700, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);
+    istime(500, isOSTime);
     moveServo(2, CP_p1, 800);//
     istime(820, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 3050, 1);//物料放地
-    istime(1400, isOSTime);
-    moveServo(1, Claw_p3, 300); //爪子张开
-    istime(320, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);
+    ManStepUartCtrl(0,0x400, 0xEE, 3050, 1);//物料放地
+    istime(1000, isOSTime);
+    moveServo(1, Claw_p3, 200); //爪子张开
+    istime(220, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);
 
 }
 //叠放第二层
 void PutMate_to_M(uint8_t x, bool isOSTime){
-    alone_Rotate_MateTray(x,isOSTime);
+     alone_Rotate_MateTray(x,isOSTime);
     istime(100, isOSTime);
     moveServo(1, Claw_p2, 300);//抓取位置
     istime(300, isOSTime);  
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);//物料在转盘抓取
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);//物料在转盘抓取
     moveServo(2, CP_p2, 800);//
     istime(820, isOSTime);
     // moveServo(1, Claw_p2, 300);//物料松开
@@ -236,15 +236,15 @@ void PutMate_to_M(uint8_t x, bool isOSTime){
     istime(400, isOSTime);
     moveServo(1, Claw_p1, 200);//物料抓取
     istime(220, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);
-    istime(700, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);
+    istime(500, isOSTime);
     moveServo(2, CP_p1, 800);//
     istime(820, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 1630, 1);//物料放地
-    istime(1400, isOSTime);
-    moveServo(1, Claw_p3, 300); //爪子张开
-    istime(320, isOSTime);
-    ManStepUartCtrl(0,0x320, 0xE0, 0, 1);
+    ManStepUartCtrl(0,0x400, 0xEE, 1630, 1);//物料放地
+    istime(1000, isOSTime);
+    moveServo(1, Claw_p3, 200); //爪子张开
+    istime(220, isOSTime);
+    ManStepUartCtrl(0,0x400, 0xEE, 0, 1);
 }
 
 void alone_Rotate_MateTray(uint8_t x, bool isOSTime){
@@ -261,11 +261,15 @@ void alone_Rotate_MateTray(uint8_t x, bool isOSTime){
     }
 }
 
-void identify_color_circle_postion(uint8_t dir){
-    if(dir == 1){
-        ManStepUartCtrl(0,0x320, 0xE0, 2000, 1);//物料色环识别高度--15cm
-    }else if(dir == 0){
-        ManStepUartCtrl(0,0x250, 0xE0, 0, 1);
+void identify_color_circle_postion(uint8_t dir)
+{
+    if(dir == 1)
+    {
+        ManStepUartCtrl(0,0x400, 0xEE, 2000, 1);//物料色环识别高度--15cm
+    }
+    else if(dir == 0)
+    {
+        ManStepUartCtrl(0,0x250, 0xEE, 0, 1);
     }
 }
 

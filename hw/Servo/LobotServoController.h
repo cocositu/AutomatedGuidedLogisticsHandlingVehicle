@@ -17,7 +17,7 @@
 //爪子ID1
 #define  Claw_p1   1335  //抓取位置
 #define  Claw_p2   1515  //松开位置
-#define  Claw_p3   1675  //识别位置
+#define  Claw_p3   1800  //识别位置
 //云台ID2
 #define  CP_p1     1163  //云台转到识别物料位置
 #define  CP_p2     2070  //云台转到物料盘抓取位置

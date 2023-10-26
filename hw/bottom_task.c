@@ -206,9 +206,8 @@ void task_taskSchedule(void* pvParameters){
 		// 	//replyCurTaskStatus(BottomData.needRelyTask);
 		// 	BottomData.needRelyTask = 0;
 		// }
-    	vTaskDelay(80);
+    	vTaskDelay(50);
    	}
-	
    	vTaskDelete(task_taskSchedule_handle);
     taskEXIT_CRITICAL();
 }
@@ -216,9 +215,12 @@ void task_taskSchedule(void* pvParameters){
 void task_moveSzoneToQRzone(void* pvParameters){
 	taskSta[TASK_moveSzoneToQRzone] = TASK_BUSY_STATE;
 	getTaskSta_GPIO_CTRL(1);
+
 	TranslationMove_PID(1.5, SZONE_TO_TMPZONE_DIS, -SZONE_TO_TMPZONE_DIS, True);
 	vTaskDelay(100);
-	MoveInLine_PID(1.6, TMPZONE_TO_QRCODE_DIS ,True);
+	MoveInLine_PID(0.5, 0.1f ,True);
+	MoveInLine_PID(1,   0.1414f ,True);
+	MoveInLine_PID(1.5,TMPZONE_TO_QRCODE_DIS-0.2414f, True);
 	
 	taskSta[TASK_moveSzoneToQRzone] = TASK_IDLE_STATE ;
 	getTaskSta_GPIO_CTRL(0);
@@ -229,7 +231,7 @@ void task_moveSzoneToQRzone(void* pvParameters){
 void task_moveQRzoneToMzone(void* pvParameters){
 	taskSta[TASK_moveQRzoneToMzone] = TASK_BUSY_STATE;
 	getTaskSta_GPIO_CTRL(1);
-	MoveInLine_PID(1.6, QRZONE_TO_MZONE_DIS, True);
+	MoveInLine_PID(1.5, QRZONE_TO_MZONE_DIS, True);
 	vTaskDelay(100);
 	TranslationMove(UART_CTRL, 1, 0, 0.18f, True);
 	taskSta[TASK_moveQRzoneToMzone] = TASK_IDLE_STATE;
@@ -243,13 +245,13 @@ void task_moveMzoneToEzone(void* pvParameters){
 	getTaskSta_GPIO_CTRL(1);
 	TranslationMove(UART_CTRL, 1, 0, -0.2f, True);
 	vTaskDelay(200);
-	MoveInLine_PID(1.6, MZONE_TO_FIRCOR_DIS, True);
+	MoveInLine_PID(1.5, MZONE_TO_FIRCOR_DIS, True);
 	vTaskDelay(100);
 	AntiClockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(1.6, FIRCOR_TO_EZONE_DIS, False);
+	MoveInLine_PID(1.5, FIRCOR_TO_EZONE_DIS, False);
 	vTaskDelay(100);
 	TranslationMove(UART_CTRL, 1, 0, 0.2f, True);
 	vTaskDelay(100);
@@ -296,12 +298,12 @@ void task_moveTzoneToMzone(void* pvParameters){
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(-1.6,SECCOR_TO_FIRCOR_DIS, True);
+	MoveInLine_PID(-1.5,SECCOR_TO_FIRCOR_DIS-0.08f, True);
 	Clockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(-1.6,FIRCOR_TO_MZONE_DIS - 0.12/*0.3034389751*/, True);
+	MoveInLine_PID(-1.5,FIRCOR_TO_MZONE_DIS - 0.08f/*0.3034389751*/, True);
 	TranslationMove(UART_CTRL, 1, 0, 0.2f, True);
 	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveTzoneToMzone] = TASK_IDLE_STATE ;
@@ -323,7 +325,14 @@ void task_moveTzoneToSzone(void* pvParameters){
 	vTaskDelay(2000);
 	IMU_UART_YawZeroOut();
 	vTaskDelay(500);
-	MoveInLine_PID(2.5, THIRCOR_DIS_TO_TMPZONE_DIS, True);
+
+	MoveInLine_PID(0.5, 0.1, True);
+	MoveInLine_PID(1, 0.1414, True);
+	MoveInLine_PID(1.5,0.2, True);
+	MoveInLine_PID(2, 0.2828, True);
+	MoveInLine_PID(2.5,0.4, True);
+	MoveInLine_PID(3, THIRCOR_DIS_TO_TMPZONE_DIS - 1.1242, True);
+
 	TranslationMove_PID(2,TMPZONE_TO_SZONE_X_DIS,TMPZONE_TO_SZONE_Y_DIS, True);
 	AntiClockwise_90Angle(UART_CTRL);
 	vTaskDelay(2000);
@@ -338,7 +347,7 @@ void task_moveContorCricle(void* pvParameters){
 	taskSta[TASK_moveContorCricle] = TASK_BUSY_STATE;
 	getTaskSta_GPIO_CTRL(1);
 	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS, 0, True);
-	vTaskDelay(500);
+	vTaskDelay(400);
 
 	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveContorCricle] = TASK_IDLE_STATE;
@@ -350,6 +359,7 @@ void task_moveContorCricle(void* pvParameters){
 void task_moveBetweenCricle(void* pvParameters){
 	taskSta[TASK_moveBetweenCricle] = TASK_BUSY_STATE;
 	getTaskSta_GPIO_CTRL(1);
+
 	RingMovSeq  = (RingMovCount_total / 9) & 0x01;
 	if(RingMovCount_total == 0){
 		RingMovZone = 0;
@@ -371,13 +381,12 @@ void task_moveBetweenCricle(void* pvParameters){
 	}else{
 		RingMovCount++;
 	}
-
+	RingMovCount_total++;
 	int8_t tmp_i = Arr_REL_ZoneMove[RingMovZone][RingMovSeq][RingMovCount];
 	
 	TranslationMove(UART_CTRL, 1, RINGS_BETWEEN_DIS * tmp_i, 0, True);
-	vTaskDelay(1000);
+	vTaskDelay(500);
 
-	RingMovCount_total++;
 	getTaskSta_GPIO_CTRL(0);
 	taskSta[TASK_moveBetweenCricle] = TASK_IDLE_STATE;
 	vTaskDelete(task_moveBetweenCricle_handle);
@@ -402,7 +411,7 @@ void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
     ((pStruct_PID)xy_pid[0])->setPar(xy_pid[0], 1, 0, 0);
     ((pStruct_PID)xy_pid[1])->setPar(xy_pid[1], 1, 0, 0);
     int c_x =0, c_y=0 ;
-    int tmp_i = 8;
+    int tmp_i = 12;
 	LED[2]->reverse(LED[2]);
     while (tmp_i--){
 		vTaskSuspend(task_taskSchedule_handle);
@@ -410,8 +419,8 @@ void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
 			LED[0]->reverse(LED[0]);
             // inqCurXYPos();
 			XY_GPIO_CTRL(1);
-            if(isOSTime)    vTaskDelay(250);
-            else            delay_xms(250);    
+            if(isOSTime)    vTaskDelay(150);
+            else            delay_xms(150);    
         }
 		vTaskResume(task_taskSchedule_handle);
 		XY_GPIO_CTRL(0);
@@ -428,7 +437,7 @@ void AdjustXYPostion(int t_x, int t_y, bool isOSTime){
         if(_abs_f(dy)> 1) dy = 1 *_sign_f(dy);
 		
         TranslationMove(TIM_CTRL, 0.12, dx, dy, isOSTime);
-		vTaskDelay(150);
+		//vTaskDelay(150);
     }
     stop_all_motor();
 }
